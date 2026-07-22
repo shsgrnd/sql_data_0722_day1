@@ -1,0 +1,142 @@
+Table PERSON {
+  person_id bigint [pk, not null, note: '개인을 구분하는 내부 식별자']
+  name varchar [not null, note: '성명']
+  email varchar [not null, unique, note: '개인 이메일 주소']
+  phone varchar [null, note: '연락처']
+  birth_date date [not null, note: '생년월일']
+  address text [null, note: '주소']
+
+  Note: '학생과 교수의 공통 정보를 관리하는 상위 엔터티'
+}
+
+Table DEPARTMENT {
+  department_id bigint [pk, not null, note: '학과 내부 식별자']
+  department_code varchar [not null, unique, note: '학과 업무 코드']
+  department_name varchar [not null, unique, note: '학과명']
+  office_location varchar [null, note: '학과 사무실 위치']
+  phone varchar [null, note: '학과 대표 연락처']
+
+  Note: '학과 기본 정보를 관리하는 엔터티'
+}
+
+Table DEGREE_PROGRAM {
+  degree_program_id bigint [pk, not null, note: '학위 과정 내부 식별자']
+  program_name varchar [not null, unique, note: '학위 과정명']
+  standard_years smallint [not null, note: '표준 수업 연한']
+  required_credits smallint [not null, note: '졸업 이수 필요 학점']
+  description text [null, note: '학위 과정 설명']
+
+  Note: '학위 과정과 졸업 기준을 관리하는 엔터티'
+}
+
+Table STUDENT {
+  person_id bigint [pk, not null, note: 'PERSON을 참조하는 학생 식별자']
+  student_number varchar [not null, unique, note: '학생 업무 식별 번호']
+  department_id bigint [not null, note: '학생 소속 학과 식별자']
+  degree_program_id bigint [not null, note: '학생 소속 학위 과정 식별자']
+  advisor_id bigint [null, note: '지도 교수의 PERSON 식별자']
+  admission_date date [not null, note: '입학일']
+  academic_status varchar [not null, note: '재학, 휴학, 졸업 등의 학적 상태']
+  current_semester smallint [not null, note: '현재 이수 학기']
+
+  Note: 'PERSON의 학생 역할 및 학적 정보를 관리하는 하위 엔터티'
+}
+
+Table PROFESSOR {
+  person_id bigint [pk, not null, note: 'PERSON을 참조하는 교수 식별자']
+  professor_number varchar [not null, unique, note: '교수 업무 식별 번호']
+  department_id bigint [not null, note: '교수 소속 학과 식별자']
+  appointment_date date [not null, note: '임용일']
+  position varchar [not null, note: '교수 직위']
+  office_location varchar [null, note: '교수 연구실 위치']
+
+  Note: 'PERSON의 교수 역할 및 인사 정보를 관리하는 하위 엔터티'
+}
+
+Table COURSE {
+  course_id bigint [pk, not null, note: '교과목 내부 식별자']
+  course_code varchar [not null, unique, note: '교과목 업무 코드']
+  course_name varchar [not null, note: '교과목명']
+  department_id bigint [not null, note: '교과목 개설 학과 식별자']
+  credits smallint [not null, note: '교과목 학점']
+  course_level varchar [not null, note: '교과목 수준']
+  description text [null, note: '교과목 설명']
+
+  Note: '학과에서 제공하는 교과목 정보를 관리하는 엔터티'
+}
+
+Table SEMESTER {
+  semester_id bigint [pk, not null, note: '학기 내부 식별자']
+  academic_year integer [not null, note: '학년도']
+  term varchar [not null, note: '학기 구분']
+  start_date date [not null, note: '학기 시작일']
+  end_date date [not null, note: '학기 종료일']
+  registration_start date [not null, note: '수강 신청 시작일']
+  registration_end date [not null, note: '수강 신청 종료일']
+
+  indexes {
+    (academic_year, term) [unique, name: 'uq_semester_academic_year_term']
+  }
+
+  Note: '학년도별 학기와 수강 신청 기간을 관리하는 엔터티'
+}
+
+Table CLASS_SECTION {
+  class_section_id bigint [pk, not null, note: '분반 내부 식별자']
+  course_id bigint [not null, note: '분반의 교과목 식별자']
+  semester_id bigint [not null, note: '분반이 개설된 학기 식별자']
+  professor_id bigint [not null, note: '분반 담당 교수의 PERSON 식별자']
+  section_number varchar [not null, note: '교과목 내 분반 번호']
+  capacity integer [not null, note: '수강 정원']
+
+  indexes {
+    (course_id, semester_id, section_number) [unique, name: 'uq_class_section_course_semester_number']
+  }
+
+  Note: '학기별 교과목 분반과 담당 교수를 관리하는 엔터티'
+}
+
+Table CLASS_SCHEDULE {
+  class_schedule_id bigint [pk, not null, note: '수업 일정 내부 식별자']
+  class_section_id bigint [not null, note: '수업 일정이 속한 분반 식별자']
+  day_of_week varchar [not null, note: '수업 요일']
+  start_time time [not null, note: '수업 시작 시각']
+  end_time time [not null, note: '수업 종료 시각']
+  classroom varchar [null, note: '강의실']
+
+  indexes {
+    (class_section_id, day_of_week, start_time) [unique, name: 'uq_class_schedule_section_day_start']
+  }
+
+  Note: '분반별 요일, 시간 및 강의실을 관리하는 엔터티'
+}
+
+Table ENROLLMENT {
+  enrollment_id bigint [pk, not null, note: '수강 신청 내부 식별자']
+  student_id bigint [not null, note: '수강 학생의 PERSON 식별자']
+  class_section_id bigint [not null, note: '수강 신청한 분반 식별자']
+  enrollment_date date [not null, note: '수강 신청일']
+  enrollment_status varchar [not null, note: '신청, 취소, 이수 등의 수강 상태']
+  score numeric [null, note: '취득 점수']
+  grade varchar [null, note: '취득 등급']
+
+  indexes {
+    (student_id, class_section_id) [unique, name: 'uq_enrollment_student_section']
+  }
+
+  Note: '학생의 분반 수강 신청과 성적을 관리하는 엔터티'
+}
+
+Ref: PERSON.person_id - STUDENT.person_id
+Ref: PERSON.person_id - PROFESSOR.person_id
+Ref: DEPARTMENT.department_id < STUDENT.department_id
+Ref: DEPARTMENT.department_id < PROFESSOR.department_id
+Ref: DEPARTMENT.department_id < COURSE.department_id
+Ref: DEGREE_PROGRAM.degree_program_id < STUDENT.degree_program_id
+Ref: PROFESSOR.person_id < STUDENT.advisor_id
+Ref: COURSE.course_id < CLASS_SECTION.course_id
+Ref: SEMESTER.semester_id < CLASS_SECTION.semester_id
+Ref: PROFESSOR.person_id < CLASS_SECTION.professor_id
+Ref: CLASS_SECTION.class_section_id < CLASS_SCHEDULE.class_section_id
+Ref: STUDENT.person_id < ENROLLMENT.student_id
+Ref: CLASS_SECTION.class_section_id < ENROLLMENT.class_section_id

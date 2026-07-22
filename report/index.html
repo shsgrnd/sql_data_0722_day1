@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PostgreSQL 학사관리시스템 종합실습 보고서</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="report">
+    <!-- PAGE 1: 표지 및 전체 개요 -->
+    <section class="page" aria-label="1페이지: 시스템 개요">
+      <header class="page-header">
+        <span>PostgreSQL 학사관리시스템 종합실습</span>
+        <span>광주 3반 신형섭 <i></i> 2026-07-22</span>
+      </header>
+
+      <div class="page-body">
+        <section class="hero-card">
+          <div class="hero-kicker">POSTGRESQL · ACADEMIC MANAGEMENT SYSTEM</div>
+          <h1>학사관리시스템 데이터 모델링<br>및 PostgreSQL 실습</h1>
+          <p class="hero-subtitle">요구사항 정의 · 논리 데이터 모델링 · DDL/DML · 조회 쿼리</p>
+          <dl class="metadata">
+            <div><dt>소속</dt><dd>광주 3반</dd></div>
+            <div><dt>이름</dt><dd>신형섭</dd></div>
+            <div><dt>과제</dt><dd>PostgreSQL 종합실습</dd></div>
+            <div><dt>DBMS</dt><dd>PostgreSQL 17</dd></div>
+            <div><dt>도구</dt><dd>DBeaver, dbdiagram.io, VS Code</dd></div>
+            <div><dt>작성일</dt><dd>2026-07-22</dd></div>
+          </dl>
+        </section>
+
+        <section aria-labelledby="overview-title">
+          <h2 class="section-title" id="overview-title"><span>01</span> 시스템 개요</h2>
+          <div class="content-card overview-card">
+            <p>본 시스템은 대학의 학생, 교수, 학과, 교과목, 개설강의 및 수강 정보를 통합적으로 관리하기 위한 학사관리시스템이다.</p>
+            <p>학부생뿐만 아니라 석사 및 박사과정 학생도 관리할 수 있도록 학위과정을 별도의 관리 대상으로 구성한다.</p>
+            <p>학생과 교수의 공통 인적정보는 <strong>PERSON</strong> 엔터티에서 통합 관리하며, 학생과 교수의 고유 정보는 각각 <strong>STUDENT</strong>와 <strong>PROFESSOR</strong> 엔터티에서 관리한다.</p>
+          </div>
+        </section>
+
+        <section aria-labelledby="areas-title">
+          <h2 class="section-title" id="areas-title"><span>02</span> 주요 관리 영역</h2>
+          <div class="entity-grid">
+            <div class="entity-card"><b>PERSON</b><span>학생과 교수의 공통 인적정보</span></div>
+            <div class="entity-card"><b>STUDENT</b><span>학생의 학적 및 학위과정 정보</span></div>
+            <div class="entity-card"><b>PROFESSOR</b><span>교수의 소속 및 강의 담당 정보</span></div>
+            <div class="entity-card"><b>DEPARTMENT</b><span>학과 정보</span></div>
+            <div class="entity-card"><b>DEGREE_PROGRAM</b><span>학사, 석사, 박사 학위과정</span></div>
+            <div class="entity-card"><b>COURSE</b><span>교과목 기본정보</span></div>
+            <div class="entity-card"><b>SEMESTER</b><span>연도 및 학기정보</span></div>
+            <div class="entity-card"><b>CLASS_SECTION</b><span>특정 학기에 실제 개설된 강의</span></div>
+            <div class="entity-card"><b>CLASS_SCHEDULE</b><span>분반별 요일, 시간 및 강의실</span></div>
+            <div class="entity-card"><b>ENROLLMENT</b><span>학생의 수강 및 성적정보</span></div>
+          </div>
+        </section>
+
+        <section aria-labelledby="flow-title">
+          <h2 class="section-title compact-title" id="flow-title"><span>03</span> 설계 핵심 요약</h2>
+          <div class="process-flow" aria-label="설계 핵심 흐름">
+            <div>요구사항<br>정의</div><b aria-hidden="true">→</b>
+            <div>개념 데이터<br>모델링</div><b aria-hidden="true">→</b>
+            <div>논리 데이터<br>모델링</div><b aria-hidden="true">→</b>
+            <div>PostgreSQL<br>물리 모델링</div><b aria-hidden="true">→</b>
+            <div>DDL/DML 및<br>조회 실습</div>
+          </div>
+        </section>
+      </div>
+
+      <footer class="page-footer">
+        <span>PostgreSQL 종합실습 <i></i> 학사관리시스템</span>
+        <span>1 / 22</span>
+      </footer>
+    </section>
+
+    <!-- PAGE 2: 주요 요구사항 -->
+    <section class="page" aria-label="2페이지: 주요 요구사항">
+      <header class="page-header">
+        <span>PostgreSQL 학사관리시스템 종합실습</span>
+        <span>광주 3반 신형섭 <i></i> 2026-07-22</span>
+      </header>
+
+      <div class="page-body">
+        <div class="page-heading">
+          <div><span class="eyebrow">REQUIREMENTS DEFINITION</span><h1>학사관리시스템 주요 요구사항</h1></div>
+          <strong>02</strong>
+        </div>
+
+        <div class="requirement-grid">
+          <article class="requirement-card">
+            <div class="card-label">3.1 <span>PERSON</span></div>
+            <h2>인적정보 관리</h2>
+            <ul>
+              <li>학생과 교수의 이름, 이메일, 연락처 등 공통 인적정보를 관리한다.</li>
+              <li>공통 인적정보는 PERSON 엔터티에서 통합 관리한다.</li>
+              <li>학생과 교수의 고유 정보는 각각 STUDENT와 PROFESSOR 엔터티에서 관리한다.</li>
+            </ul>
+          </article>
+
+          <article class="requirement-card">
+            <div class="card-label">3.2 <span>STUDENT</span></div>
+            <h2>학생 관리</h2>
+            <ul>
+              <li>학생의 학번, 입학일, 학적 상태를 관리한다.</li>
+              <li>학생은 하나의 소속 학과와 현재 학위과정을 가진다.</li>
+              <li>학위과정은 학사, 석사, 박사로 구분한다.</li>
+              <li>학생의 재학, 휴학, 졸업, 제적 등의 학적 상태를 관리한다.</li>
+              <li>학생은 필요에 따라 한 명의 지도교수를 가질 수 있다.</li>
+              <li>지도교수가 정해지지 않은 학생도 등록할 수 있다.</li>
+            </ul>
+          </article>
+
+          <article class="requirement-card">
+            <div class="card-label">3.3 <span>PROFESSOR</span></div>
+            <h2>교수 관리</h2>
+            <ul>
+              <li>교수의 교수번호, 임용일, 직급을 관리한다.</li>
+              <li>교수는 하나의 학과에 소속된다.</li>
+              <li>교수는 여러 개설강의를 담당할 수 있다.</li>
+              <li>교수는 여러 학생의 지도교수가 될 수 있다.</li>
+            </ul>
+          </article>
+
+          <article class="requirement-card">
+            <div class="card-label">3.4 <span>DEPARTMENT · DEGREE</span></div>
+            <h2>학과 및 학위과정 관리</h2>
+            <ul>
+              <li>학과의 명칭과 기본 정보를 관리한다.</li>
+              <li>학생과 교수 및 교과목의 소속 학과를 관리한다.</li>
+              <li>학사, 석사, 박사 학위과정의 명칭과 표준 수업연한을 관리한다.</li>
+            </ul>
+          </article>
+
+          <article class="requirement-card">
+            <div class="card-label">3.5 <span>COURSE · CLASS_SECTION</span></div>
+            <h2>교과목 및 개설강의 관리</h2>
+            <ul>
+              <li>교과목의 과목코드, 과목명, 학점 및 주관 학과를 관리한다.</li>
+              <li>교과목과 실제 개설강의를 구분하여 관리한다.</li>
+              <li>개설강의는 특정 학기에 특정 교수에 의해 개설된 교과목을 의미한다.</li>
+              <li>분반은 담당 교수, 학기 및 수강 정원을 관리하고, 강의실과 시간은 CLASS_SCHEDULE에서 관리한다.</li>
+            </ul>
+          </article>
+
+          <article class="requirement-card">
+            <div class="card-label">3.6 <span>ENROLLMENT</span></div>
+            <h2>수강 및 성적 관리</h2>
+            <ul>
+              <li>학생은 여러 개설강의를 수강할 수 있다.</li>
+              <li>하나의 개설강의에는 여러 학생이 수강할 수 있다.</li>
+              <li>학생과 개설강의 간의 다대다 관계는 ENROLLMENT 엔터티로 해소한다.</li>
+              <li>수강 정보에는 신청일, 수강 상태, 점수 및 등급을 포함한다.</li>
+            </ul>
+          </article>
+        </div>
+      </div>
+
+      <footer class="page-footer">
+        <span>PostgreSQL 종합실습 <i></i> 학사관리시스템</span>
+        <span>2 / 22</span>
+      </footer>
+    </section>
+
+    <!-- PAGE 3: 설계 방향 및 ERD 자리 표시 -->
+    <section class="page" aria-label="3페이지: 데이터베이스 설계 방향">
+      <header class="page-header">
+        <span>PostgreSQL 학사관리시스템 종합실습</span>
+        <span>광주 3반 신형섭 <i></i> 2026-07-22</span>
+      </header>
+
+      <div class="page-body design-page">
+        <div class="page-heading">
+          <div><span class="eyebrow">DATABASE DESIGN</span><h1>데이터베이스 설계 방향</h1></div>
+          <strong>03</strong>
+        </div>
+
+        <div class="design-grid">
+          <article class="design-card">
+            <div class="card-label">4.1 <span>INHERITANCE</span></div>
+            <h2>상속 구조 적용</h2>
+            <p>학생과 교수의 공통 인적정보 중복을 제거하기 위해 PERSON을 상위 엔터티로 구성하고, STUDENT와 PROFESSOR를 하위 엔터티로 구성한다.</p>
+            <p>상속 관계는 Class Table 방식으로 구현한다. STUDENT와 PROFESSOR의 기본키는 PERSON의 기본키를 참조하는 외래키로 함께 사용한다.</p>
+            <div class="tree-diagram">
+              <b>PERSON</b><span class="branch">┌────────┴────────┐</span>
+              <div><em>STUDENT</em><em>PROFESSOR</em></div>
+            </div>
+          </article>
+
+          <article class="design-card">
+            <div class="card-label">4.2 <span>COURSE INSTANCE</span></div>
+            <h2>교과목과 개설강의 분리</h2>
+            <p>교과목은 학교에 등록된 과목 자체를 나타내며, 개설강의는 해당 교과목이 특정 연도와 학기에 실제로 운영되는 단위를 나타낸다.</p>
+            <p>이를 분리하여 하나의 교과목이 여러 학기에 반복 개설될 수 있도록 설계한다.</p>
+            <div class="mini-flow vertical">
+              <span>데이터베이스 교과목</span><b>↓</b><span>2026년 1학기 데이터베이스 A반</span><b>↓</b><span>담당 교수 및 강의실 배정</span>
+            </div>
+          </article>
+
+          <article class="design-card">
+            <div class="card-label">4.3 <span>RELATIONSHIP</span></div>
+            <h2>다대다 관계 해소</h2>
+            <p>학생과 개설강의는 다대다 관계를 가진다. 이를 관계형 데이터베이스에 적합한 구조로 변환하기 위해 ENROLLMENT 교차 엔터티를 두고 수강 및 성적 정보를 함께 관리한다.</p>
+            <div class="relation-diagram">
+              <span>STUDENT</span><b>1 : N</b><span class="accent">ENROLLMENT</span><b>N : 1</b><span>CLASS_SECTION</span>
+            </div>
+          </article>
+
+          <article class="design-card">
+            <div class="card-label">4.4 <span>ADVISOR</span></div>
+            <h2>지도교수 관계</h2>
+            <p>학생과 지도교수의 관계는 STUDENT 엔터티에 지도교수 식별자를 외래키로 두는 방식으로 설계한다.</p>
+            <p>한 명의 교수는 여러 학생을 지도할 수 있으며, 학생은 최대 한 명의 지도교수를 가진다. 지도교수가 정해지지 않은 경우를 고려하여 해당 외래키는 NULL을 허용한다.</p>
+            <div class="relation-diagram advisor"><span>PROFESSOR</span><b>1 : N</b><span class="accent">STUDENT</span></div>
+          </article>
+        </div>
+
+        <div class="bottom-grid">
+          <article class="content-card compact-card">
+            <div class="card-label">4.5 <span>NORMALIZATION</span></div>
+            <h2>정규화</h2>
+            <p>데이터 중복과 갱신 이상을 방지하기 위해 제3정규형을 기준으로 설계한다.</p>
+            <ul class="check-list">
+              <li>하나의 속성에는 하나의 값만 저장한다.</li>
+              <li>수강 엔터티에 학생명과 교과목명을 중복 저장하지 않는다.</li>
+              <li>학과명, 학위과정명, 교과목명은 각각의 엔터티에서 관리한다.</li>
+              <li>다른 엔터티에서는 해당 식별자를 외래키로 참조한다.</li>
+            </ul>
+          </article>
+
+          <article class="content-card compact-card">
+            <div class="card-label">4.6 <span>INTEGRITY</span></div>
+            <h2>무결성 보장</h2>
+            <p>각 엔터티에는 기본키를 설정하고 엔터티 간 관계에는 외래키를 적용했다. 필수값, 중복 불가 값, 허용 가능한 상태 및 점수 범위에는 다음 제약조건을 적용했다.</p>
+            <div class="constraint-tags"><span>PRIMARY KEY</span><span>FOREIGN KEY</span><span>NOT NULL</span><span>UNIQUE</span><span>CHECK</span><span>DEFAULT</span></div>
+          </article>
+        </div>
+
+        <section class="entity-summary" aria-labelledby="entity-summary-title">
+          <h2 id="entity-summary-title">주요 엔터티 요약</h2>
+          <p>PERSON · STUDENT · PROFESSOR · DEPARTMENT · DEGREE_PROGRAM · COURSE · SEMESTER · CLASS_SECTION · CLASS_SCHEDULE · ENROLLMENT</p>
+        </section>
+
+        <figure class="erd-frame">
+          <img src="images/ERD.png" alt="학사관리시스템 논리 ERD 미리보기">
+          <figcaption class="result-caption"><strong>학사관리시스템 논리 ERD</strong><span>전체 크기 ERD와 범례는 다음 페이지에 수록</span></figcaption>
+        </figure>
+      </div>
+
+      <footer class="page-footer">
+        <span>PostgreSQL 종합실습 <i></i> 학사관리시스템</span>
+        <span>3 / 22</span>
+      </footer>
+    </section>
+
+    <!-- PAGE 4: ERD -->
+    <section class="page evidence-page" aria-label="4페이지: ERD">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body">
+        <div class="page-heading"><div><span class="eyebrow">ENTITY RELATIONSHIP DIAGRAM</span><h1>학사관리시스템 ERD</h1></div><strong>04</strong></div>
+        <figure class="result-figure erd-result">
+          <img src="images/ERD.png" alt="학사관리시스템 전체 ERD">
+          <figcaption class="result-caption">10개 엔터티의 식별자, 속성, 상속 구조 및 관계를 표현한 최종 ERD</figcaption>
+        </figure>
+        <section class="erd-legend" aria-label="ERD 범례">
+          <h2>ERD 범례</h2>
+          <div><span><b>🔑 PK</b> 기본키</span><span><b>🔗 FK</b> 외래키</span><span><b>UQ</b> 고유 제약</span><span><b>NN</b> 필수값</span></div>
+          <p><strong>1 : 0..1</strong> PERSON과 STUDENT/PROFESSOR의 선택적 역할 관계 · <strong>1 : N</strong> 부모 한 건에 여러 자식 행이 연결되는 관계</p>
+        </section>
+        <div class="status-card"><strong>관계선 검토 완료</strong> — 각 FK 관계의 연결 대상을 식별할 수 있도록 배치했으며, PERSON 한 명이 학생과 교수 역할을 동시에 가질 수 있는 구조를 반영했다.</div>
+      </div>
+      <footer class="page-footer"><span>ERD 설계 및 범례</span><span>4 / 22</span></footer>
+    </section>
+
+    <!-- PAGE 5: DDL -->
+    <section class="page evidence-page" aria-label="5페이지: DDL 실행">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body">
+        <div class="page-heading"><div><span class="eyebrow">DDL EXECUTION</span><h1>PostgreSQL 접속 및 테이블 생성</h1></div><strong>05</strong></div>
+        <p class="page-intro">PostgreSQL 17의 <strong>academic_management</strong> 데이터베이스에 접속해 전용 스키마와 10개 테이블을 생성했다.</p>
+        <figure class="result-figure single-evidence">
+          <img src="images/02_create_tables.png" alt="테이블 생성 SQL과 DBeaver 테이블 목록">
+          <figcaption class="result-caption"><strong>02_create_tables.sql</strong> — 제약조건을 포함한 DDL 실행 결과와 생성된 10개 테이블</figcaption>
+        </figure>
+        <div class="status-card"><strong>실행 결과</strong> — 22개 SQL 문장이 오류 없이 처리되었고, DBeaver Navigator에서 모든 테이블을 확인했다.</div>
+      </div>
+      <footer class="page-footer"><span>PostgreSQL 접속 · CREATE SCHEMA · CREATE TABLE</span><span>5 / 22</span></footer>
+    </section>
+
+    <!-- PAGE 6: DML execution -->
+    <section class="page evidence-page" aria-label="6페이지: 샘플 데이터 입력">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body">
+        <div class="page-heading"><div><span class="eyebrow">DML EXECUTION</span><h1>샘플 데이터 입력 및 확인</h1></div><strong>06</strong></div>
+        <div class="evidence-grid two">
+          <figure class="result-figure"><img src="images/03_insert_1.png" alt="샘플 데이터 INSERT 실행 결과"><figcaption class="result-caption"><strong>03_insert_sample_data.sql</strong> — FK 의존 순서에 따른 INSERT 전체 실행</figcaption></figure>
+          <figure class="result-figure"><img src="images/03_insert_enrollment.png" alt="ENROLLMENT 샘플 데이터"><figcaption class="result-caption"><strong>ENROLLMENT</strong> — 학생과 분반을 연결한 수강 및 성적 데이터</figcaption></figure>
+        </div>
+        <div class="notice-card compact-notice"><strong>입력 건수 기준</strong> — PERSON은 20건, 주요 실습 테이블은 각 10건을 입력했다. DEGREE_PROGRAM은 UNIQUE 및 허용값이 학사·석사·박사로 제한되어 3건을 입력했다.</div>
+      </div>
+      <footer class="page-footer"><span>DML · INSERT INTO</span><span>6 / 22</span></footer>
+    </section>
+
+    <!-- PAGE 7: DML data -->
+    <section class="page evidence-page" aria-label="7페이지: 학생 및 교수 데이터">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body">
+        <div class="page-heading"><div><span class="eyebrow">DML RESULT</span><h1>학생 및 교수 데이터</h1></div><strong>07</strong></div>
+        <div class="evidence-grid two">
+          <figure class="result-figure"><img src="images/03_insert_student.png" alt="STUDENT 샘플 데이터"><figcaption class="result-caption"><strong>STUDENT</strong> — 학번, 소속 학과, 학위과정, 지도교수 및 학적 상태</figcaption></figure>
+          <figure class="result-figure"><img src="images/03_insert_professor.png" alt="PROFESSOR 샘플 데이터"><figcaption class="result-caption"><strong>PROFESSOR</strong> — 교수번호, 소속 학과, 임용일, 직급 및 연구실</figcaption></figure>
+        </div>
+      </div>
+      <footer class="page-footer"><span>DML · 데이터 입력 결과</span><span>7 / 22</span></footer>
+    </section>
+
+    <!-- PAGE 8-10: basic queries -->
+    <section class="page evidence-page" aria-label="8페이지: 기본 조회 1">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">BASIC SELECT</span><h1>기본 조회 및 조건 검색</h1></div><strong>08</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/04_basic_1.png" alt="전체 데이터 조회"><figcaption class="result-caption"><strong>전체 조회</strong> — 테이블 데이터를 식별자 순으로 확인</figcaption></figure>
+        <figure class="result-figure"><img src="images/04_basic_2.png" alt="WHERE 조건 조회"><figcaption class="result-caption"><strong>WHERE</strong> — 재학 상태인 학생 조회</figcaption></figure>
+      </div></div><footer class="page-footer"><span>SELECT · WHERE</span><span>8 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="9페이지: 기본 조회 2">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">FILTER &amp; SORT</span><h1>정렬 및 복합 조건 조회</h1></div><strong>09</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/04_basic_3.png" alt="ORDER BY 정렬 조회"><figcaption class="result-caption"><strong>ORDER BY</strong> — 학점 내림차순과 과목코드 순 정렬</figcaption></figure>
+        <figure class="result-figure"><img src="images/04_basic_4.png" alt="복합 조건 조회"><figcaption class="result-caption"><strong>복합 조건</strong> — 학부 과정이면서 3학점 이상인 교과목</figcaption></figure>
+      </div></div><footer class="page-footer"><span>ORDER BY · 복합 조건</span><span>9 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="10페이지: 기본 조회 3">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">NULL &amp; RANGE</span><h1>NULL 및 범위 조건 조회</h1></div><strong>10</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/04_basic_5.png" alt="NULL 조건 조회"><figcaption class="result-caption"><strong>IS NULL</strong> — 지도교수가 지정되지 않은 학생 조회</figcaption></figure>
+        <figure class="result-figure"><img src="images/04_basic_6.png" alt="점수 범위 조건 조회"><figcaption class="result-caption"><strong>범위 조건</strong> — 80점 이상 수강 성적 조회</figcaption></figure>
+      </div></div><footer class="page-footer"><span>IS NULL · 범위 조건</span><span>10 / 22</span></footer>
+    </section>
+
+    <!-- PAGE 11-14: functions -->
+    <section class="page evidence-page" aria-label="11페이지: COALESCE">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">SQL FUNCTIONS</span><h1>COALESCE 활용</h1></div><strong>11</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/05_func_1.png" alt="연락처와 주소 COALESCE 결과"><figcaption class="result-caption"><strong>COALESCE ①</strong> — NULL 연락처와 주소를 안내 문구로 대체</figcaption></figure>
+        <figure class="result-figure"><img src="images/05_func_2.png" alt="점수와 등급 COALESCE 결과"><figcaption class="result-caption"><strong>COALESCE ②</strong> — 미확정 점수와 등급을 표시</figcaption></figure>
+      </div></div><footer class="page-footer"><span>함수 활용 · COALESCE</span><span>11 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="12페이지: CASE WHEN">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">CONDITIONAL EXPRESSIONS</span><h1>CASE WHEN 활용</h1></div><strong>12</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/05_func_3.png" alt="점수 구간 CASE WHEN 결과"><figcaption class="result-caption"><strong>CASE WHEN ①</strong> — 점수에 따른 평가 단계 분류</figcaption></figure>
+        <figure class="result-figure"><img src="images/05_func_4.png" alt="학기 단계 CASE WHEN 결과"><figcaption class="result-caption"><strong>CASE WHEN ②</strong> — 현재 학기에 따른 학생 단계 분류</figcaption></figure>
+      </div></div><footer class="page-footer"><span>함수 활용 · CASE WHEN</span><span>12 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="13페이지: 날짜 함수">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">DATE FUNCTIONS</span><h1>날짜 함수 활용</h1></div><strong>13</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/05_func_5.png" alt="나이와 출생연도 계산 결과"><figcaption class="result-caption"><strong>AGE · EXTRACT</strong> — 현재 날짜 기준 나이와 출생연도 계산</figcaption></figure>
+        <figure class="result-figure"><img src="images/05_func_6.png" alt="학기 기간 계산 결과"><figcaption class="result-caption"><strong>날짜 연산</strong> — 학기 시작일과 종료일의 기간 계산</figcaption></figure>
+      </div></div><footer class="page-footer"><span>함수 활용 · 날짜 함수</span><span>13 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="14페이지: 집계 함수">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">AGGREGATE FUNCTION</span><h1>집계 함수 활용</h1></div><strong>14</strong></div>
+        <figure class="result-figure single-evidence"><img src="images/05_func_7.png" alt="학적 상태별 학생 수 집계"><figcaption class="result-caption"><strong>COUNT · GROUP BY</strong> — 학적 상태별 학생 수 집계</figcaption></figure>
+        <div class="conclusion-card"><strong>함수 활용 결과</strong> — NULL 대체, 조건 분류, 날짜 계산 및 그룹별 집계를 통해 원본 데이터를 보고서에 적합한 정보로 변환했다.</div>
+      </div><footer class="page-footer"><span>함수 활용 · 집계</span><span>14 / 22</span></footer>
+    </section>
+
+    <!-- PAGE 15-18: joins -->
+    <section class="page evidence-page" aria-label="15페이지: 학생 교수 JOIN">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">JOIN PRACTICE</span><h1>학생 및 교수 관계 조회</h1></div><strong>15</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/06_join_1.png" alt="학생 학과 학위과정 지도교수 JOIN"><figcaption class="result-caption"><strong>학생 통합 조회</strong> — PERSON, STUDENT, DEPARTMENT, DEGREE_PROGRAM, PROFESSOR JOIN</figcaption></figure>
+        <figure class="result-figure"><img src="images/06_join_2.png" alt="교수와 소속 학과 JOIN"><figcaption class="result-caption"><strong>교수 통합 조회</strong> — 교수 인적정보와 소속 학과 JOIN</figcaption></figure>
+      </div></div><footer class="page-footer"><span>JOIN · 학생 및 교수</span><span>15 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="16페이지: 개설강의 JOIN">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">CLASS JOIN</span><h1>개설강의 및 강의시간 조회</h1></div><strong>16</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/06_join_3.png" alt="개설강의 교과목 학기 교수 JOIN"><figcaption class="result-caption"><strong>개설강의</strong> — 교과목, 학기, 담당교수 및 정원 조회</figcaption></figure>
+        <figure class="result-figure"><img src="images/06_join_4.png" alt="강의시간과 강의실 JOIN"><figcaption class="result-caption"><strong>강의시간</strong> — 분반별 요일, 시작·종료 시간 및 강의실 조회</figcaption></figure>
+      </div></div><footer class="page-footer"><span>JOIN · 개설강의 및 일정</span><span>16 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="17페이지: 수강 JOIN">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">ENROLLMENT JOIN</span><h1>수강신청 교차 테이블 조회</h1></div><strong>17</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/06_join_5.png" alt="학생별 수강 교과목과 성적 JOIN"><figcaption class="result-caption"><strong>수강 및 성적</strong> — ENROLLMENT를 중심으로 학생과 개설강의 연결</figcaption></figure>
+        <figure class="result-figure"><img src="images/06_join_6.png" alt="분반별 수강 인원과 잔여 정원"><figcaption class="result-caption"><strong>수강 현황</strong> — 분반별 수강 인원과 잔여 정원 집계</figcaption></figure>
+      </div></div><footer class="page-footer"><span>JOIN · ENROLLMENT 교차 테이블</span><span>17 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="18페이지: 집계 JOIN">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">AGGREGATE JOIN</span><h1>관계별 집계 조회</h1></div><strong>18</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/06_join_7.png" alt="교수별 지도학생 수"><figcaption class="result-caption"><strong>지도 관계</strong> — 교수별 지도학생 수 집계</figcaption></figure>
+        <figure class="result-figure"><img src="images/06_join_8.png" alt="학과별 학생 교수 교과목 수"><figcaption class="result-caption"><strong>학과 현황</strong> — 학과별 학생, 교수, 교과목 수 집계</figcaption></figure>
+      </div></div><footer class="page-footer"><span>JOIN · 관계별 집계</span><span>18 / 22</span></footer>
+    </section>
+
+    <!-- PAGE 19-22: verification -->
+    <section class="page evidence-page" aria-label="19페이지: 테이블 및 컬럼 검증">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">SCHEMA VERIFICATION</span><h1>테이블 및 컬럼 검증</h1></div><strong>19</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/07_verify_1.png" alt="10개 테이블 생성 확인"><figcaption class="result-caption"><strong>테이블 목록</strong> — academic_management 스키마의 10개 테이블 확인</figcaption></figure>
+        <figure class="result-figure"><img src="images/07_verify_2.png" alt="컬럼 자료형 NULL DEFAULT identity 확인"><figcaption class="result-caption"><strong>컬럼 메타데이터</strong> — 자료형, NULL, DEFAULT 및 identity 설정 확인</figcaption></figure>
+      </div></div><footer class="page-footer"><span>검증 · 테이블 및 컬럼</span><span>19 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="20페이지: 키 제약 검증">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">CONSTRAINT VERIFICATION</span><h1>PK, UNIQUE 및 FK 검증</h1></div><strong>20</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/07_verify_3.png" alt="PK 및 UNIQUE 검증"><figcaption class="result-caption"><strong>PK · UNIQUE</strong> — 단일 및 복합 고유 제약의 컬럼 순서 확인</figcaption></figure>
+        <figure class="result-figure"><img src="images/07_verify_4.png" alt="FK와 삭제 정책 검증"><figcaption class="result-caption"><strong>FK 정책</strong> — 부모·자식 컬럼과 UPDATE/DELETE 규칙 확인</figcaption></figure>
+      </div></div><footer class="page-footer"><span>검증 · PK · UNIQUE · FK</span><span>20 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="21페이지: CHECK 및 인덱스 검증">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">INTEGRITY VERIFICATION</span><h1>CHECK 및 인덱스 검증</h1></div><strong>21</strong></div><div class="evidence-grid two">
+        <figure class="result-figure"><img src="images/07_verify_5.png" alt="CHECK 제약 검증"><figcaption class="result-caption"><strong>CHECK</strong> — 상태값, 날짜, 범위 및 시간 규칙 확인</figcaption></figure>
+        <figure class="result-figure"><img src="images/07_verify_6.png" alt="인덱스 검증"><figcaption class="result-caption"><strong>INDEX</strong> — PK, UNIQUE 및 별도 FK 인덱스 확인</figcaption></figure>
+      </div></div><footer class="page-footer"><span>검증 · CHECK · INDEX</span><span>21 / 22</span></footer>
+    </section>
+
+    <section class="page evidence-page" aria-label="22페이지: 최종 검증">
+      <header class="page-header"><span>PostgreSQL 학사관리시스템 종합실습</span><span>광주 3반 신형섭 <i></i> 2026-07-22</span></header>
+      <div class="page-body"><div class="page-heading"><div><span class="eyebrow">FINAL VERIFICATION</span><h1>상속키 및 데이터 건수 확인</h1></div><strong>22</strong></div><div class="evidence-grid two compact-evidence">
+        <figure class="result-figure"><img src="images/07_verify_7.png" alt="학생 교수 상속키 검증"><figcaption class="result-caption"><strong>상속키 구조</strong> — STUDENT와 PROFESSOR의 person_id가 PK와 FK를 동시에 가짐</figcaption></figure>
+        <figure class="result-figure"><img src="images/07_verify_8.png" alt="테이블별 데이터 건수"><figcaption class="result-caption"><strong>데이터 건수</strong> — 테이블별 샘플 데이터 입력 결과 확인</figcaption></figure>
+      </div><div class="conclusion-card"><strong>최종 결과</strong> — 요구사항 정의, ERD, DDL/DML, 기본 조회, 함수, CASE WHEN, 날짜 함수 및 ENROLLMENT JOIN 실습을 모두 완료했다.</div></div>
+      <footer class="page-footer"><span>최종 검증 및 결론</span><span>22 / 22</span></footer>
+    </section>
+  </main>
+</body>
+</html>

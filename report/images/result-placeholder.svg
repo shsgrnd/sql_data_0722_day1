@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="700" viewBox="0 0 1200 700" role="img" aria-labelledby="title desc">
+  <title id="title">SQL 실행 결과 플레이스홀더</title>
+  <desc id="desc">DBeaver 실행 결과 이미지가 배치될 자리</desc>
+  <rect width="1200" height="700" rx="18" fill="#f7f9fb"/>
+  <rect x="45" y="45" width="1110" height="610" rx="12" fill="#ffffff" stroke="#d9e0e8" stroke-width="4"/>
+  <rect x="45" y="45" width="1110" height="74" rx="12" fill="#10284c"/>
+  <circle cx="88" cy="82" r="10" fill="#16b5e5"/><circle cx="122" cy="82" r="10" fill="#74d2ed"/><circle cx="156" cy="82" r="10" fill="#bdebf7"/>
+  <g stroke="#d9e0e8" stroke-width="3">
+    <path d="M85 175H1115M85 235H1115M85 295H1115M85 355H1115M85 415H1115M85 475H1115M85 535H1115M85 595H1115"/>
+    <path d="M290 150V620M585 150V620M870 150V620"/>
+  </g>
+  <rect x="85" y="150" width="1030" height="55" fill="#eaf7fc" opacity=".8"/>
+</svg>
