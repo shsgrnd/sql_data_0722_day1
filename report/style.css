@@ -110,6 +110,9 @@ h1, h2, p, figure, dl { margin-top: 0; }
 .section-title span { color: var(--cyan); font-size: 8pt; letter-spacing: .08em; }
 .compact-title { margin-top: 4.2mm; }
 
+.overview-page .page-body > section + section { margin-top: 5mm; }
+.overview-page .compact-title { margin-top: 0; }
+
 .content-card, .summary-card, .requirement-card, .design-card,
 .result-figure, .status-card, .notice-card, .erd-frame, .conclusion-card {
   border: .3mm solid var(--border);
@@ -263,8 +266,11 @@ h1, h2, p, figure, dl { margin-top: 0; }
 
 .evidence-grid { display: grid; gap: 3mm; }
 .evidence-grid.two { grid-template-rows: repeat(2, minmax(0, 1fr)); }
+.evidence-grid.four { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
 .evidence-grid .result-figure { display: flex; flex-direction: column; justify-content: center; min-height: 0; margin: 0; padding: 2.5mm; }
 .evidence-grid.two .result-figure img { width: 100%; height: 96mm; object-fit: contain; }
+.evidence-grid.four .result-figure img { width: 100%; height: 72mm; object-fit: contain; }
+.evidence-grid.four .result-caption { font-size: 7pt; }
 .evidence-grid .result-caption { flex: 0 0 auto; margin-top: 1.5mm; line-height: 1.35; }
 .evidence-grid .result-caption strong { color: var(--navy); }
 
@@ -279,10 +285,14 @@ h1, h2, p, figure, dl { margin-top: 0; }
 .erd-legend > div { display: grid; grid-template-columns: repeat(4, 1fr); gap: 2mm; }
 .erd-legend span { padding: 1.8mm 2mm; border-radius: 1mm; background: var(--white); font-size: 7.2pt; }
 .erd-legend b { margin-right: 1mm; color: var(--navy); }
-.erd-legend p { margin: 2mm 0 0; color: var(--muted); font-size: 7.2pt; }
+.erd-legend .legend-lines { margin-top: 1.5mm; }
+.erd-legend .legend-lines span { border: .2mm solid #e2e8ef; }
+.erd-legend .legend-lines b { display: inline-block; min-width: 5mm; color: var(--cyan); font-size: 8pt; text-align: center; }
+.erd-legend p { margin: 2mm 0 0; color: var(--muted); font-size: 7pt; line-height: 1.4; }
 .erd-legend p strong { color: var(--navy); }
 
 .compact-evidence .result-figure img { height: 91mm; }
+.evidence-grid.four.compact-evidence .result-figure img { height: 66mm; }
 .evidence-page .conclusion-card { font-size: 8.5pt; }
 .compact-notice { margin-top: 2mm; padding: 2.4mm 3mm; font-size: 7.2pt; line-height: 1.35; }
 
