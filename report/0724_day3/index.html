@@ -8,7 +8,7 @@
 </head>
 <body>
   <main class="report">
-    <!-- 1 / 17 -->
+    <!-- 1 / 20 -->
     <section class="page" aria-label="표지">
       <header class="page-header">
         <span>PostgreSQL 종합실습 4</span>
@@ -33,12 +33,12 @@
           <article><b>성능 진단</b><span>EXPLAIN ANALYZE · BUFFERS · 실제 행 수</span></article>
           <article><b>성능 개선</b><span>부분·커버링 인덱스 · Window · Materialized View</span></article>
         </div>
-        <div class="submission-note"><strong>제출물 구성</strong> — Q1~Q10의 튜닝 전·후 SQL 실행 화면과 JSON 실행 계획, Q11 안전 나눗셈 함수, Materialized View 결과를 문항 순서대로 정리했다.</div>
+        <div class="submission-note"><strong>제출물 구성</strong> — Q1~Q10의 튜닝 전·후 SQL 실행 화면과 핵심 실행계획 부록, Q11 안전 나눗셈 함수, Materialized View 결과를 문항 순서대로 정리했다.</div>
       </div>
-      <footer class="page-footer"><span>PostgreSQL 종합실습 4 <i></i> SQL 분석 및 튜닝</span><span>1 / 17</span></footer>
+      <footer class="page-footer"><span>PostgreSQL 종합실습 4 <i></i> SQL 분석 및 튜닝</span><span>1 / 20</span></footer>
     </section>
 
-    <!-- 2 / 17 -->
+    <!-- 2 / 20 -->
     <section class="page" aria-label="실습 개요">
       <header class="page-header"><span>실습 개요</span><span>광주 3반 신형섭 <i></i> 2026-07-24</span></header>
       <div class="page-body">
@@ -57,7 +57,7 @@
             <h2>성능 검증 기준</h2>
             <ul>
               <li>동일 결과를 반환하는 튜닝 전·후 SQL 비교</li>
-              <li><code>EXPLAIN (ANALYZE, BUFFERS)</code> JSON 원본 보존</li>
+              <li><code>EXPLAIN (ANALYZE, BUFFERS)</code> 핵심 노드와 측정값 보존</li>
               <li>Execution Time, Scan, Join, Buffers 변화 확인</li>
               <li>인덱스가 선택되지 않은 경우 데이터 규모와 선택도 분석</li>
             </ul>
@@ -78,16 +78,16 @@
         </div>
         <div class="check-list">
           <article class="check-card"><strong>결과 동일성</strong><p>튜닝 전·후 캡처에서 동일한 컬럼과 결과가 반환되는지 확인했다.</p></article>
-          <article class="check-card"><strong>실행 계획 원본</strong><p>문항별 JSON 파일에 SQL 전체와 실행 계획, Planning/Execution Time을 보존했다.</p></article>
+          <article class="check-card"><strong>실행 계획 부록</strong><p>문항별 Scan·Join·Buffers와 Planning/Execution Time을 PDF 내부 부록에 보존했다.</p></article>
           <article class="check-card"><strong>정직한 평가</strong><p>Q1·Q5·Q8처럼 개선되지 않은 측정도 포함하고 원인을 기록했다.</p></article>
           <article class="check-card"><strong>측정 주의</strong><p>밀리초 단위 단일 실행은 캐시와 시스템 부하의 영향을 받을 수 있다.</p></article>
         </div>
       </div>
-      <footer class="page-footer"><span>실습 환경 · 분석 범위 · 검증 절차</span><span>2 / 17</span></footer>
+      <footer class="page-footer"><span>실습 환경 · 분석 범위 · 검증 절차</span><span>2 / 20</span></footer>
     </section>
 
-    <!-- 3 / 17 -->
-    <section class="page" aria-label="Q1 최근 한 달 실제 판매 금액">
+    <!-- 3 / 20 -->
+    <section class="page" id="q01" aria-label="Q1 최근 한 달 실제 판매 금액">
       <header class="page-header"><span>Q1 · 최근 한 달 GMV</span><span>EXPLAIN ANALYZE · 부분 인덱스</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">ROLLING 1 MONTH · GMV</span><h1>지난 한 달 실제 판매 금액</h1></div><strong>03</strong></div>
@@ -101,21 +101,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>Seq Scan</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_1.png"><img src="../../result/0724_day3/total4_1.png" alt="Q1 튜닝 전 SQL과 결과"></a>
-            <figcaption><strong>결과 874,043.78</strong> — orders와 order_items를 Hash Join하고 orders를 순차 탐색했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q01_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption><strong>결과 874,043.78</strong> — orders와 order_items를 Hash Join하고 orders를 순차 탐색했다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>Index Only Scan</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_1_tuned.png"><img src="../../result/0724_day3/total4_1_tuned.png" alt="Q1 튜닝 후 SQL과 결과"></a>
-            <figcaption>부분 인덱스 <code>idx_orders_sales_ts_customer</code>를 사용해 orders 버퍼가 줄었으나 order_items 전체 스캔 비용이 남았다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q01_after_explain.json.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>부분 인덱스 <code>idx_orders_sales_ts_customer</code>를 사용해 orders 버퍼가 줄었으나 order_items 전체 스캔 비용이 남았다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box warning"><strong>판단</strong> — 최상위 공유 버퍼는 177에서 151로 감소했지만 실행 시간은 0.018ms 증가해 사실상 동일했다. 선택된 주문이 많고 order_items 11,012행을 모두 읽으므로 인덱스 전환만으로는 유의미한 개선이 없었다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q01">Q1 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q1 · GMV · Index Only Scan</span><span>3 / 17</span></footer>
+      <footer class="page-footer"><span>Q1 · GMV · Index Only Scan</span><span>3 / 20</span></footer>
     </section>
 
-    <!-- 4 / 17 -->
-    <section class="page" aria-label="Q2 월별 주문 성과">
+    <!-- 4 / 20 -->
+    <section class="page" id="q02" aria-label="Q2 월별 주문 성과">
       <header class="page-header"><span>Q2 · 월별 주문 성과</span><span>COUNT · SUM · AVG</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">MONTHLY KPI · AOV</span><h1>월별 주문 수·매출·평균 주문액</h1></div><strong>04</strong></div>
@@ -129,21 +130,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>2단계 HashAggregate</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_2.png"><img src="../../result/0724_day3/total4_2.png" alt="Q2 튜닝 전 SQL과 결과"></a>
-            <figcaption>주문별 금액을 먼저 계산한 뒤 월별로 다시 집계해 상품 행 수가 주문 수를 부풀리지 않도록 했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q02_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>주문별 금액을 먼저 계산한 뒤 월별로 다시 집계해 상품 행 수가 주문 수를 부풀리지 않도록 했다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>통계 갱신</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_2_tuned.png"><img src="../../result/0724_day3/total4_2_tuned.png" alt="Q2 튜닝 후 SQL과 결과"></a>
-            <figcaption>실행 구조와 공유 버퍼 177은 동일했으며, 갱신된 통계와 캐시 상태에서 집계 시간이 단축됐다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q02_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>실행 구조와 공유 버퍼 177은 동일했으며, 갱신된 통계와 캐시 상태에서 집계 시간이 단축됐다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box"><strong>판단</strong> — 월별 전체 리포트는 판매 주문 대부분을 읽어야 하므로 Seq Scan과 HashAggregate가 합리적이다. 이 유형은 인덱스보다 일별 Materialized View를 월별로 재집계하는 방식이 확장성에 유리하다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q02">Q2 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q2 · Monthly KPI · HashAggregate</span><span>4 / 17</span></footer>
+      <footer class="page-footer"><span>Q2 · Monthly KPI · HashAggregate</span><span>4 / 20</span></footer>
     </section>
 
-    <!-- 5 / 17 -->
-    <section class="page" aria-label="Q3 최근 90일 카테고리 Top 10">
+    <!-- 5 / 20 -->
+    <section class="page" id="q03" aria-label="Q3 최근 90일 카테고리 Top 10">
       <header class="page-header"><span>Q3 · 카테고리 Top 10</span><span>90 DAYS · TOP-N</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">CATEGORY PERFORMANCE</span><h1>최근 90일 카테고리 매출</h1></div><strong>05</strong></div>
@@ -157,21 +159,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>orders Seq Scan</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_3.png"><img src="../../result/0724_day3/total4_3.png" alt="Q3 튜닝 전 SQL과 결과"></a>
-            <figcaption>orders → order_items → products → categories를 Hash Join하고 카테고리별 매출을 집계했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q03_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>orders → order_items → products → categories를 Hash Join하고 카테고리별 매출을 집계했다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>orders Index Only</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_3_tuned.png"><img src="../../result/0724_day3/total4_3_tuned.png" alt="Q3 튜닝 후 SQL과 결과"></a>
-            <figcaption>기간·판매 상태 부분 인덱스로 orders 3,891행을 읽고 동일한 Top 10을 반환했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q03_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>기간·판매 상태 부분 인덱스로 orders 3,891행을 읽고 동일한 Top 10을 반환했다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box"><strong>결과</strong> — Women 카테고리가 1,301,748.94로 1위였다. 인덱스가 선택됐지만 대상 기간이 넓어 버퍼는 185에서 271로 증가했고 시간 개선도 4.4%로 제한적이었다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q03">Q3 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q3 · Category Top 10 · Partial Index</span><span>5 / 17</span></footer>
+      <footer class="page-footer"><span>Q3 · Category Top 10 · Partial Index</span><span>5 / 20</span></footer>
     </section>
 
-    <!-- 6 / 17 -->
-    <section class="page" aria-label="Q4 제품별 누적매출 순위">
+    <!-- 6 / 20 -->
+    <section class="page" id="q04" aria-label="Q4 제품별 누적매출 순위">
       <header class="page-header"><span>Q4 · 제품별 누적매출</span><span>RANK · WindowAgg</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">PRODUCT RANKING · TOP 20</span><h1>제품별 누적매출 순위</h1></div><strong>06</strong></div>
@@ -185,21 +188,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>CTE 2단계</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_4.png"><img src="../../result/0724_day3/total4_4.png" alt="Q4 튜닝 전 SQL과 결과"></a>
-            <figcaption>제품 매출 CTE와 순위 CTE를 분리했다. Product 224가 1,743,812.16으로 1위였다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q04_before_explain.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>제품 매출 CTE와 순위 CTE를 분리했다. Product 224가 1,743,812.16으로 1위였다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>집계+RANK 통합</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_4_tuned.png"><img src="../../result/0724_day3/total4_4_tuned.png" alt="Q4 튜닝 후 SQL과 결과"></a>
-            <figcaption>제품별 SUM과 RANK 계산을 하나의 CTE에서 수행해 중간 표현을 단순화했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q04_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>제품별 SUM과 RANK 계산을 하나의 CTE에서 수행해 중간 표현을 단순화했다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box"><strong>판단</strong> — 공유 버퍼는 184로 동일하고 주요 노드도 HashAggregate·WindowAgg로 유지됐으나 측정 실행 시간은 59.3% 감소했다. 구조 단순화 효과와 캐시 영향을 함께 고려해야 하며 반복 측정으로 재확인이 필요하다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q04">Q4 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q4 · RANK · WindowAgg · Top 20</span><span>6 / 17</span></footer>
+      <footer class="page-footer"><span>Q4 · RANK · WindowAgg · Top 20</span><span>6 / 20</span></footer>
     </section>
 
-    <!-- 7 / 17 -->
-    <section class="page" aria-label="Q5 고객 RFM">
+    <!-- 7 / 20 -->
+    <section class="page" id="q05" aria-label="Q5 고객 RFM">
       <header class="page-header"><span>Q5 · 고객 RFM</span><span>RECENCY · FREQUENCY · MONETARY</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">CUSTOMER VALUE</span><h1>고객별 RFM 분석</h1></div><strong>07</strong></div>
@@ -213,21 +217,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>주문별 선집계</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_5.png"><img src="../../result/0724_day3/total4_5.png" alt="Q5 튜닝 전 SQL과 결과"></a>
-            <figcaption>주문을 한 행으로 먼저 줄인 후 고객별 RFM을 계산했다. 최고 Monetary는 24,034.92였다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q05_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>주문을 한 행으로 먼저 줄인 후 고객별 RFM을 계산했다. 최고 Monetary는 24,034.92였다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>직접 고객 집계</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_5_tuned.png"><img src="../../result/0724_day3/total4_5_tuned.png" alt="Q5 튜닝 후 SQL과 결과"></a>
-            <figcaption>CTE를 제거하고 <code>COUNT(DISTINCT order_id)</code>로 빈도를 계산했지만 더 많은 상품 행을 GroupAggregate에 전달했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q05_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>CTE를 제거하고 <code>COUNT(DISTINCT order_id)</code>로 빈도를 계산했지만 더 많은 상품 행을 GroupAggregate에 전달했다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box warning"><strong>회귀 분석</strong> — 단일 집계로 단순화했지만 GroupAggregate 입력이 주문 5,064행에서 상품 8,421행 수준으로 늘어 실행 시간이 증가했다. 이 문항은 튜닝 전의 주문별 선집계 구조를 유지하는 것이 더 적절하다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q05">Q5 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q5 · RFM · 성능 회귀 분석</span><span>7 / 17</span></footer>
+      <footer class="page-footer"><span>Q5 · RFM · 성능 회귀 분석</span><span>7 / 20</span></footer>
     </section>
 
-    <!-- 8 / 17 -->
-    <section class="page" aria-label="Q6 30일 재구매율">
+    <!-- 8 / 20 -->
+    <section class="page" id="q06" aria-label="Q6 30일 재구매율">
       <header class="page-header"><span>Q6 · 30일 재구매율</span><span>EXISTS · ROW_NUMBER</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">RETENTION · COHORT</span><h1>첫 구매 후 30일 내 재구매율</h1></div><strong>08</strong></div>
@@ -241,21 +246,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>상관 EXISTS</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_6.png"><img src="../../result/0724_day3/total4_6.png" alt="Q6 튜닝 전 SQL과 결과"></a>
-            <figcaption>2,093명의 성숙 고객마다 다음 주문을 반복 탐색해 957명, 45.72%의 재구매율을 계산했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q06_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>2,093명의 성숙 고객마다 다음 주문을 반복 탐색해 957명, 45.72%의 재구매율을 계산했다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>Window 1회 처리</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_6_tuned.png"><img src="../../result/0724_day3/total4_6_tuned.png" alt="Q6 튜닝 후 SQL과 결과"></a>
-            <figcaption>고객별 구매 순서를 한 번 계산하고 첫 번째·두 번째 구매만 비교했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q06_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>고객별 구매 순서를 한 번 계산하고 첫 번째·두 번째 구매만 비교했다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box"><strong>핵심 개선</strong> — 기존 계획은 고객당 Index Scan을 두 차례, 총 2,093 loops씩 수행했다. 튜닝 후 부분 커버링 인덱스의 Index Only Scan과 WindowAgg 한 번으로 바뀌어 버퍼가 98.6% 감소했다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q06">Q6 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q6 · Retention · Index Only Scan · WindowAgg</span><span>8 / 17</span></footer>
+      <footer class="page-footer"><span>Q6 · Retention · Index Only Scan · WindowAgg</span><span>8 / 20</span></footer>
     </section>
 
-    <!-- 9 / 17 -->
-    <section class="page" aria-label="Q7 재고 부족 상품">
+    <!-- 9 / 20 -->
+    <section class="page" id="q07" aria-label="Q7 재고 부족 상품">
       <header class="page-header"><span>Q7 · 재고 위험</span><span>INVENTORY · REORDER POINT</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">STOCKOUT RISK</span><h1>재고가 임계치보다 낮은 상품</h1></div><strong>09</strong></div>
@@ -269,21 +275,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>Seq Scan</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_7.png"><img src="../../result/0724_day3/total4_7.png" alt="Q7 튜닝 전 SQL과 결과"></a>
-            <figcaption>현재 재고가 reorder_point보다 작은 상품을 부족 수량 내림차순으로 정렬했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q07_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>현재 재고가 reorder_point보다 작은 상품을 부족 수량 내림차순으로 정렬했다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>Seq Scan 유지</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_7_tuned.png"><img src="../../result/0724_day3/total4_7_tuned.png" alt="Q7 튜닝 후 SQL과 결과"></a>
-            <figcaption>부분 표현식 인덱스를 추가했지만 inventory 600행 규모에서는 전체 스캔이 더 저렴해 선택되지 않았다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q07_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>부분 표현식 인덱스를 추가했지만 inventory 600행 규모에서는 전체 스캔이 더 저렴해 선택되지 않았다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box"><strong>판단</strong> — 실행 시간은 0.051ms 줄었지만 절대 차이가 매우 작고 계획·버퍼(12)가 동일하다. 데이터가 증가하고 위험 상품 비율이 낮아질 때 부분 인덱스의 효과가 커질 수 있다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q07">Q7 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q7 · Inventory · Partial Expression Index</span><span>9 / 17</span></footer>
+      <footer class="page-footer"><span>Q7 · Inventory · Partial Expression Index</span><span>9 / 20</span></footer>
     </section>
 
-    <!-- 10 / 17 -->
-    <section class="page" aria-label="Q8 리뷰 효자상품">
+    <!-- 10 / 20 -->
+    <section class="page" id="q08" aria-label="Q8 리뷰 효자상품">
       <header class="page-header"><span>Q8 · 리뷰 효자상품</span><span>AVG · COUNT · HAVING</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">REVIEW QUALITY</span><h1>평점 4.5 이상·리뷰 50개 이상</h1></div><strong>10</strong></div>
@@ -297,21 +304,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>HashAggregate</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_8.png"><img src="../../result/0724_day3/total4_8.png" alt="Q8 튜닝 전 SQL과 결과"></a>
-            <figcaption>Product 557이 평점 4.86, 리뷰 160개로 가장 높은 평균 평점을 기록했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q08_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>Product 557이 평점 4.86, 리뷰 160개로 가장 높은 평균 평점을 기록했다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>Seq Scan 유지</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_8_tuned.png"><img src="../../result/0724_day3/total4_8_tuned.png" alt="Q8 튜닝 후 SQL과 결과"></a>
-            <figcaption>rating 포함 커버링 인덱스를 추가했으나 리뷰 2,055행 대부분을 집계해야 해 옵티마이저가 사용하지 않았다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q08_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>rating 포함 커버링 인덱스를 추가했으나 리뷰 2,055행 대부분을 집계해야 해 옵티마이저가 사용하지 않았다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box warning"><strong>회귀 분석</strong> — 실행 계획과 버퍼 29는 동일하므로 인덱스 효과가 없고 단일 실행 변동이 크게 나타났다. 이 규모에서는 Seq Scan이 적절하며, 반복 측정 중앙값으로 검증하거나 인덱스 추가를 보류하는 편이 낫다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q08">Q8 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q8 · Reviews · HAVING · 회귀 분석</span><span>10 / 17</span></footer>
+      <footer class="page-footer"><span>Q8 · Reviews · HAVING · 회귀 분석</span><span>10 / 20</span></footer>
     </section>
 
-    <!-- 11 / 17 -->
-    <section class="page" aria-label="Q9 쿠폰 사용 영향">
+    <!-- 11 / 20 -->
+    <section class="page" id="q09" aria-label="Q9 쿠폰 사용 영향">
       <header class="page-header"><span>Q9 · 쿠폰 영향</span><span>COUPON · AOV</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">COUPON VS NO COUPON</span><h1>쿠폰 사용 여부별 평균 주문 금액</h1></div><strong>11</strong></div>
@@ -325,21 +333,22 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>문자열 그룹</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_9.png"><img src="../../result/0724_day3/total4_9.png" alt="Q9 튜닝 전 SQL과 결과"></a>
-            <figcaption>쿠폰 사용 1,155건의 평균은 2,048.40, 미사용 3,909건은 255.64로 집계됐다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q09_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>쿠폰 사용 1,155건의 평균은 2,048.40, 미사용 3,909건은 255.64로 집계됐다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>Boolean 그룹</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_9_tuned.png"><img src="../../result/0724_day3/total4_9_tuned.png" alt="Q9 튜닝 후 SQL과 결과"></a>
-            <figcaption>주문별 집계에서는 Boolean으로 분류하고 최종 출력에서만 표시 문자열로 변환했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q09_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>주문별 집계에서는 Boolean으로 분류하고 최종 출력에서만 표시 문자열로 변환했다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box"><strong>해석</strong> — 시드 데이터에서 쿠폰 주문은 더 비싼 상품·더 많은 품목과 수량을 선택하도록 생성됐다. 따라서 쿠폰이 매출을 인과적으로 8배 높였다는 뜻이 아니라, 쿠폰 사용 주문에서 높은 AOV가 관찰됐다는 의미다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q09">Q9 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q9 · Coupon · Average Order Value</span><span>11 / 17</span></footer>
+      <footer class="page-footer"><span>Q9 · Coupon · Average Order Value</span><span>11 / 20</span></footer>
     </section>
 
-    <!-- 12 / 17 -->
-    <section class="page" aria-label="Q10 상위 1퍼센트 고객">
+    <!-- 12 / 20 -->
+    <section class="page" id="q10" aria-label="Q10 상위 1퍼센트 고객">
       <header class="page-header"><span>Q10 · 상위 1% 고객</span><span>60 DAYS · NTILE</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">TOP CUSTOMER SEGMENT</span><h1>상위 1% 고객의 최근 60일 매출</h1></div><strong>12</strong></div>
@@ -353,20 +362,21 @@
           <figure class="compare-figure">
             <h2>튜닝 전 <span>orders Seq Scan</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_10.png"><img src="../../result/0724_day3/total4_10.png" alt="Q10 튜닝 전 SQL과 결과"></a>
-            <figcaption>최근 60일 구매 고객을 매출순으로 100개 구간에 나눠 1번 구간 17명을 조회했다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q10_before_explain.json.json">튜닝 전 JSON</a></div></figcaption>
+            <figcaption>최근 60일 구매 고객을 매출순으로 100개 구간에 나눠 1번 구간 17명을 조회했다.</figcaption>
           </figure>
           <figure class="compare-figure after">
             <h2>튜닝 후 <span>orders Index Only</span></h2>
             <a class="image-link" href="../../result/0724_day3/total4_10_tuned.png"><img src="../../result/0724_day3/total4_10_tuned.png" alt="Q10 튜닝 후 SQL과 결과"></a>
-            <figcaption>부분 인덱스로 최근 주문을 제한한 뒤 동일하게 NTILE(100)을 계산했다. Customer 25가 23,831.11로 1위였다.<div class="plan-links"><a class="plan-link" href="../../result/0724_day3/q10_after_explain.json">튜닝 후 JSON</a></div></figcaption>
+            <figcaption>부분 인덱스로 최근 주문을 제한한 뒤 동일하게 NTILE(100)을 계산했다. Customer 25가 23,831.11로 1위였다.</figcaption>
           </figure>
         </div>
         <div class="analysis-box"><strong>개선</strong> — orders 접근이 Seq Scan에서 <code>idx_orders_sales_ts_customer</code> Index Only Scan으로 바뀌어 30.1% 단축됐다. 최종 17명은 customers 기본 키 Index Scan으로 연결됐다.</div>
+        <div class="appendix-nav"><a class="appendix-link" href="#plan-q10">Q10 핵심 실행계획 부록 보기 →</a></div>
       </div>
-      <footer class="page-footer"><span>Q10 · NTILE · Top 1% · Index Only Scan</span><span>12 / 17</span></footer>
+      <footer class="page-footer"><span>Q10 · NTILE · Top 1% · Index Only Scan</span><span>12 / 20</span></footer>
     </section>
 
-    <!-- 13 / 17 -->
+    <!-- 13 / 20 -->
     <section class="page" aria-label="Q11과 Materialized View">
       <header class="page-header"><span>Q11 · Safe Division · Materialized View</span><span>FUNCTION · DAILY GMV</span></header>
       <div class="page-body">
@@ -398,10 +408,10 @@ REFRESH MATERIALIZED VIEW ecom.mv_daily_gmv;</pre>
           <figure><a href="../../result/0724_day3/total4_materialized_view_30d.png"><img src="../../result/0724_day3/total4_materialized_view_30d.png" alt="Materialized View 최근 30일 조회 결과"></a><figcaption>최근 30일 범위 조회 결과</figcaption></figure>
         </div>
       </div>
-      <footer class="page-footer"><span>Q11 · safe_div · mv_daily_gmv · REFRESH</span><span>13 / 17</span></footer>
+      <footer class="page-footer"><span>Q11 · safe_div · mv_daily_gmv · REFRESH</span><span>13 / 20</span></footer>
     </section>
 
-    <!-- 14 / 17 -->
+    <!-- 14 / 20 -->
     <section class="page" aria-label="성능 비교 요약">
       <header class="page-header"><span>성능 비교 요약</span><span>EXECUTION TIME · PLAN CHANGE</span></header>
       <div class="page-body">
@@ -430,10 +440,10 @@ REFRESH MATERIALIZED VIEW ecom.mv_daily_gmv;</pre>
         </ul>
 
       </div>
-      <footer class="page-footer"><span>Performance Summary · Execution Time · Buffers</span><span>14 / 17</span></footer>
+      <footer class="page-footer"><span>Performance Summary · Execution Time · Buffers</span><span>14 / 20</span></footer>
     </section>
 
-    <!-- 15 / 17 -->
+    <!-- 15 / 20 -->
     <section class="page" aria-label="JOIN 전략 비교">
       <header class="page-header"><span>JOIN 전략 비교</span><span>NESTED LOOP · HASH · MERGE</span></header>
       <div class="page-body">
@@ -458,10 +468,10 @@ REFRESH MATERIALIZED VIEW ecom.mv_daily_gmv;</pre>
           <p>특정 JOIN 방식을 무조건 강제하는 것이 아니라 통계, 실제 행 수, 인덱스, 메모리와 정렬 상태를 개선해 옵티마이저가 적합한 계획을 고르도록 해야 한다.</p>
         </div>
       </div>
-      <footer class="page-footer"><span>Nested Loop · Hash Join · Merge Join</span><span>15 / 17</span></footer>
+      <footer class="page-footer"><span>Nested Loop · Hash Join · Merge Join</span><span>15 / 20</span></footer>
     </section>
 
-    <!-- 16 / 17 -->
+    <!-- 16 / 20 -->
     <section class="page" aria-label="DBMS별 옵티마이저 비교">
       <header class="page-header"><span>DBMS 옵티마이저 비교</span><span>OPTIONAL RESEARCH</span></header>
       <div class="page-body">
@@ -486,11 +496,283 @@ REFRESH MATERIALIZED VIEW ecom.mv_daily_gmv;</pre>
         <div class="analysis-box"><strong>공통 원칙</strong> — 엔진마다 노드 이름과 계획 관리 기능은 다르지만 카디널리티 추정, 접근 경로, 반복 횟수, 메모리와 Spill을 함께 본다는 원칙은 동일하다.</div>
     
       </div>
-      <footer class="page-footer"><span>PostgreSQL · MySQL · Oracle · SQL Server</span><span>16 / 17</span></footer>
+      <footer class="page-footer"><span>PostgreSQL · MySQL · Oracle · SQL Server</span><span>16 / 20</span></footer>
     </section>
 
-    <!-- 17 / 17 -->
-    <section class="page" aria-label="결론과 제출 체크">
+    <!-- 18 / 20 -->
+    <section class="page" id="appendix-q01-q04" aria-label="핵심 실행계획 부록 Q1부터 Q4">
+      <header class="page-header"><span>핵심 실행계획 부록</span><span>Q1 ~ Q4 · BEFORE / AFTER</span></header>
+      <div class="page-body">
+        <div class="page-heading"><div><span class="eyebrow">EXECUTION PLAN APPENDIX</span><h1>Q1~Q4 핵심 실행계획</h1></div><strong>18</strong></div>
+        <div class="plan-appendix-grid">
+          <article class="plan-card" id="plan-q01">
+            <h2>Q1 · 최근 한 달 GMV <span>3.484 → 3.502 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>Aggregate
+└─ Hash Join
+   ├─ Seq Scan order_items
+   └─ Seq Scan orders
+Buffers: hit=177
+Planning: 0.221 ms
+Execution: 3.484 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>Aggregate
+└─ Hash Join
+   ├─ Seq Scan order_items
+   └─ Index Only Scan orders
+      idx_orders_sales_ts_customer
+Buffers: hit=151
+Planning: 0.551 ms
+Execution: 3.502 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q01">← Q1 결과로 돌아가기</a></div>
+          </article>
+
+          <article class="plan-card" id="plan-q02">
+            <h2>Q2 · 월별 주문 성과 <span>12.356 → 10.908 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>HashAggregate (월)
+└─ HashAggregate (주문)
+   └─ Hash Join
+      ├─ Seq Scan order_items
+      └─ Seq Scan orders
+Buffers: hit=177
+Planning: 0.329 ms
+Execution: 12.356 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>HashAggregate (월)
+└─ HashAggregate (주문)
+   └─ Hash Join
+      ├─ Seq Scan order_items
+      └─ Seq Scan orders
+Buffers: hit=177
+Planning: 0.341 ms
+Execution: 10.908 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q02">← Q2 결과로 돌아가기</a></div>
+          </article>
+
+          <article class="plan-card" id="plan-q03">
+            <h2>Q3 · 카테고리 Top 10 <span>8.194 → 7.834 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>Limit → Sort
+└─ HashAggregate
+   └─ Hash Join × 3
+      ├─ Seq Scan order_items
+      ├─ Seq Scan orders
+      └─ Seq Scan products
+Buffers: hit=185
+Planning: 0.643 ms
+Execution: 8.194 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>Limit → Sort
+└─ HashAggregate
+   └─ Hash Join × 3
+      ├─ Seq Scan order_items
+      ├─ Index Only Scan orders
+      └─ Seq Scan products
+Buffers: hit=271
+Planning: 0.769 ms
+Execution: 7.834 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q03">← Q3 결과로 돌아가기</a></div>
+          </article>
+
+          <article class="plan-card" id="plan-q04">
+            <h2>Q4 · 제품 누적매출 순위 <span>25.163 → 10.234 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>Sort
+└─ WindowAgg
+   └─ Sort
+      └─ HashAggregate
+         └─ Hash Join × 2
+            ├─ Seq Scan order_items
+            └─ Seq Scan orders
+Buffers: hit=184
+Planning: 0.277 ms
+Execution: 25.163 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>Sort
+└─ WindowAgg
+   └─ Sort
+      └─ HashAggregate
+         └─ Hash Join × 2
+            ├─ Seq Scan order_items
+            └─ Seq Scan orders
+Buffers: hit=184
+Planning: 0.282 ms
+Execution: 10.234 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q04">← Q4 결과로 돌아가기</a></div>
+          </article>
+        </div>
+      </div>
+      <footer class="page-footer"><span>Execution Plan Appendix · Q1~Q4</span><span>18 / 20</span></footer>
+    </section>
+
+    <!-- 19 / 20 -->
+    <section class="page" id="appendix-q05-q07" aria-label="핵심 실행계획 부록 Q5부터 Q7">
+      <header class="page-header"><span>핵심 실행계획 부록</span><span>Q5 ~ Q7 · BEFORE / AFTER</span></header>
+      <div class="page-body">
+        <div class="page-heading"><div><span class="eyebrow">EXECUTION PLAN APPENDIX</span><h1>Q5~Q7 핵심 실행계획</h1></div><strong>19</strong></div>
+        <div class="plan-appendix-grid">
+          <article class="plan-card" id="plan-q05">
+            <h2>Q5 · 고객 RFM <span>12.987 → 14.895 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>GroupAggregate (고객)
+└─ Hash Join customers
+   └─ HashAggregate (주문)
+      └─ Hash Join
+         ├─ Seq Scan order_items
+         └─ Seq Scan orders
+Buffers: hit=217
+Planning: 0.296 ms
+Execution: 12.987 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>GroupAggregate (고객)
+└─ Hash Join customers
+   └─ Hash Join
+      ├─ Seq Scan order_items
+      └─ Seq Scan orders
+입력: 상품 행 8,421
+Buffers: hit=217
+Planning: 0.566 ms
+Execution: 14.895 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q05">← Q5 결과로 돌아가기</a></div>
+          </article>
+
+          <article class="plan-card" id="plan-q06">
+            <h2>Q6 · 30일 재구매율 <span>8.567 → 3.639 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>HashAggregate first_purchase
+└─ Seq Scan orders
+SubPlan EXISTS × 2
+└─ Index Scan next_order
+   loops=2,093 + 2,093
+Buffers: hit=10,354
+Planning: 0.294 ms
+Execution: 8.567 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>GroupAggregate
+└─ WindowAgg
+   └─ Index Only Scan orders
+      idx_orders_sales_customer_ts
+반복 SubPlan 제거
+Buffers: hit=146
+Planning: 0.195 ms
+Execution: 3.639 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q06">← Q6 결과로 돌아가기</a></div>
+          </article>
+
+          <article class="plan-card" id="plan-q07">
+            <h2>Q7 · 재고 위험 상품 <span>0.210 → 0.159 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>Sort need_qty DESC
+└─ Hash Join
+   ├─ Seq Scan products (600)
+   └─ Seq Scan inventory (600)
+      Filter 결과 63행
+Buffers: hit=12
+Planning: 0.224 ms
+Execution: 0.210 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>Sort need_qty DESC
+└─ Hash Join
+   ├─ Seq Scan products (600)
+   └─ Seq Scan inventory (600)
+부분 인덱스 미선택
+Buffers: hit=12
+Planning: 0.180 ms
+Execution: 0.159 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q07">← Q7 결과로 돌아가기</a></div>
+          </article>
+        </div>
+        <div class="analysis-box"><strong>부록 해석</strong> — Q6은 노드·loops·Buffers 모두에서 구조적 개선이 확인됐다. 반면 Q7은 동일 계획에서 0.051ms 차이이므로 성능 향상을 일반화하기 어렵다.</div>
+      </div>
+      <footer class="page-footer"><span>Execution Plan Appendix · Q5~Q7</span><span>19 / 20</span></footer>
+    </section>
+
+    <!-- 20 / 20 -->
+    <section class="page" id="appendix-q08-q10" aria-label="핵심 실행계획 부록 Q8부터 Q10">
+      <header class="page-header"><span>핵심 실행계획 부록</span><span>Q8 ~ Q10 · BEFORE / AFTER</span></header>
+      <div class="page-body">
+        <div class="page-heading"><div><span class="eyebrow">EXECUTION PLAN APPENDIX</span><h1>Q8~Q10 핵심 실행계획</h1></div><strong>20</strong></div>
+        <div class="plan-appendix-grid">
+          <article class="plan-card" id="plan-q08">
+            <h2>Q8 · 리뷰 효자상품 <span>0.914 → 2.062 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>Sort
+└─ HashAggregate
+   └─ Hash Join
+      ├─ Seq Scan reviews (2,055)
+      └─ Seq Scan products (600)
+Buffers: hit=29
+Planning: 0.202 ms
+Execution: 0.914 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>Sort
+└─ HashAggregate
+   └─ Hash Join
+      ├─ Seq Scan reviews (2,055)
+      └─ Seq Scan products (600)
+커버링 인덱스 미선택
+Buffers: hit=29
+Planning: 0.350 ms
+Execution: 2.062 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q08">← Q8 결과로 돌아가기</a></div>
+          </article>
+
+          <article class="plan-card" id="plan-q09">
+            <h2>Q9 · 쿠폰 AOV <span>9.893 → 7.877 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>HashAggregate (쿠폰)
+└─ HashAggregate (주문)
+   └─ Hash Join
+      ├─ Seq Scan order_items
+      └─ Seq Scan orders
+Buffers: hit=177
+Planning: 0.399 ms
+Execution: 9.893 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>HashAggregate (Boolean)
+└─ HashAggregate (주문)
+   └─ Hash Join
+      ├─ Seq Scan order_items
+      └─ Seq Scan orders
+Buffers: hit=177
+Planning: 0.219 ms
+Execution: 7.877 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q09">← Q9 결과로 돌아가기</a></div>
+          </article>
+
+          <article class="plan-card" id="plan-q10">
+            <h2>Q10 · 상위 1% 고객 <span>6.072 → 4.246 ms</span></h2>
+            <div class="plan-pair">
+              <div class="plan-snapshot"><strong>BEFORE</strong><pre>Nested Loop customers PK
+└─ WindowAgg NTILE
+   └─ HashAggregate
+      └─ Hash Join
+         ├─ Seq Scan order_items
+         └─ Seq Scan orders
+Buffers: hit=228
+Planning: 0.269 ms
+Execution: 6.072 ms</pre></div>
+              <div class="plan-snapshot after"><strong>AFTER</strong><pre>Nested Loop customers PK
+└─ WindowAgg NTILE
+   └─ HashAggregate
+      └─ Hash Join
+         ├─ Seq Scan order_items
+         └─ Index Only Scan orders
+Buffers: hit=263
+Planning: 0.363 ms
+Execution: 4.246 ms</pre></div>
+            </div>
+            <div class="plan-links"><a class="back-link" href="#q10">← Q10 결과로 돌아가기</a></div>
+          </article>
+        </div>
+        <div class="analysis-box"><strong>부록 해석</strong> — Q8은 인덱스가 선택되지 않아 회귀했고, Q9는 동일 계획에서 집계 표현을 단순화했으며, Q10은 기간 부분 인덱스가 실제 접근 경로를 바꿨다.</div>
+      </div>
+      <footer class="page-footer"><span>Execution Plan Appendix · Q8~Q10</span><span>20 / 20</span></footer>
+    </section>
+
+    <!-- 17 / 20 -->
+    <section class="page" id="conclusion-page" aria-label="결론과 제출 체크">
       <header class="page-header"><span>결론 및 제출 체크</span><span>FINAL REVIEW</span></header>
       <div class="page-body">
         <div class="page-heading"><div><span class="eyebrow">CONCLUSION</span><h1>분석 결과와 개선 방향</h1></div><strong>17</strong></div>
@@ -505,15 +787,22 @@ REFRESH MATERIALIZED VIEW ecom.mv_daily_gmv;</pre>
         </div>
         <div class="check-list" style="margin-top: 6mm;">
           <article class="check-card"><strong>Q1~Q10 결과 화면</strong><p>튜닝 전·후 SQL과 실행 결과 이미지 20개를 문항별로 연결했다.</p></article>
-          <article class="check-card"><strong>Q1~Q10 실행 계획</strong><p>JSON 원본 20개에서 실행 시간, 스캔, 조인, 버퍼를 확인했다.</p></article>
+          <article class="check-card"><strong>Q1~Q10 실행 계획</strong><p>핵심 실행계획 부록에서 실행 시간, 스캔, 조인, 버퍼를 직접 확인할 수 있다.</p></article>
           <article class="check-card"><strong>Q11 함수</strong><p>정상 나눗셈, 0 분모, NULL 분모의 동작을 검증했다.</p></article>
           <article class="check-card"><strong>Materialized View</strong><p>생성·인덱스·갱신 스크립트와 전체·30일 조회 결과를 포함했다.</p></article>
           <article class="check-card"><strong>JOIN 전략</strong><p>Nested Loop, Hash, Merge Join의 원리와 적용 조건을 비교했다.</p></article>
           <article class="check-card"><strong>옵티마이저 조사</strong><p>PostgreSQL, MySQL, Oracle, SQL Server의 특징을 별도 원문과 요약표로 정리했다.</p></article>
         </div>
       </div>
-      <footer class="page-footer"><span>PostgreSQL 종합실습 4 · 최종 보고서</span><span>17 / 17</span></footer>
+      <footer class="page-footer"><span>PostgreSQL 종합실습 4 · 최종 보고서</span><span>17 / 20</span></footer>
     </section>
   </main>
+  <script>
+    // 최종 결론을 실행계획 부록보다 먼저 배치한다.
+    const report = document.querySelector(".report");
+    const conclusion = document.querySelector("#conclusion-page");
+    const firstAppendix = document.querySelector("#appendix-q01-q04");
+    report.insertBefore(conclusion, firstAppendix);
+  </script>
 </body>
 </html>
