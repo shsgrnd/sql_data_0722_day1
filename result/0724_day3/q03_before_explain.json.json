@@ -1,0 +1,129 @@
+{
+"EXPLAIN (ANALYZE, BUFFERS)\nSELECT \n    ct.category_id, \n    ct.category_name,\n    SUM(oi.line_total) AS category_sales_amount\nFROM ecom.orders AS o\nJOIN ecom.order_items AS oi ON oi.order_id = o.order_id\nJOIN ecom.products AS p ON p.product_id = oi.product_id\nJOIN ecom.categories AS ct ON ct.category_id = p.category_id\nWHERE o.order_status IN ('paid', 'shipped', 'delivered')\n    AND o.order_ts >= CURRENT_TIMESTAMP - INTERVAL '90 days'\nGROUP BY\n    ct.category_id, \n    ct.category_name\nORDER BY category_sales_amount DESC\nLIMIT 10": [
+	{
+		"QUERY PLAN" : "Limit  (cost=661.07..661.10 rows=10 width=72) (actual time=8.141..8.144 rows=10 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=185"
+	},
+	{
+		"QUERY PLAN" : "  ->  Sort  (cost=661.07..663.75 rows=1070 width=72) (actual time=8.140..8.143 rows=10 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "        Sort Key: (sum(oi.line_total)) DESC"
+	},
+	{
+		"QUERY PLAN" : "        Sort Method: quicksort  Memory: 25kB"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=185"
+	},
+	{
+		"QUERY PLAN" : "        ->  HashAggregate  (cost=624.58..637.95 rows=1070 width=72) (actual time=8.126..8.135 rows=10 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Group Key: ct.category_id"
+	},
+	{
+		"QUERY PLAN" : "              Batches: 1  Memory Usage: 73kB"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=185"
+	},
+	{
+		"QUERY PLAN" : "              ->  Hash Join  (cost=311.01..592.71 rows=6374 width=46) (actual time=2.779..7.098 rows=6515 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                    Hash Cond: (p.category_id = ct.category_id)"
+	},
+	{
+		"QUERY PLAN" : "                    Buffers: shared hit=185"
+	},
+	{
+		"QUERY PLAN" : "                    ->  Hash Join  (cost=276.93..541.83 rows=6374 width=14) (actual time=2.758..6.118 rows=6515 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                          Hash Cond: (oi.product_id = p.product_id)"
+	},
+	{
+		"QUERY PLAN" : "                          Buffers: shared hit=184"
+	},
+	{
+		"QUERY PLAN" : "                          ->  Hash Join  (cost=256.43..504.48 rows=6374 width=14) (actual time=2.585..4.924 rows=6515 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                Hash Cond: (oi.order_id = o.order_id)"
+	},
+	{
+		"QUERY PLAN" : "                                Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "                                ->  Seq Scan on order_items oi  (cost=0.00..219.12 rows=11012 width=22) (actual time=0.003..0.631 rows=11012 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                      Buffers: shared hit=109"
+	},
+	{
+		"QUERY PLAN" : "                                ->  Hash  (cost=208.57..208.57 rows=3829 width=8) (actual time=2.577..2.577 rows=3891 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                      Buckets: 4096  Batches: 1  Memory Usage: 184kB"
+	},
+	{
+		"QUERY PLAN" : "                                      Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "                                      ->  Seq Scan on orders o  (cost=0.00..208.57 rows=3829 width=8) (actual time=0.008..2.148 rows=3891 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                            Filter: ((order_status = ANY ('{paid,shipped,delivered}'::text[])) AND (order_ts >= (CURRENT_TIMESTAMP - '90 days'::interval)))"
+	},
+	{
+		"QUERY PLAN" : "                                            Rows Removed by Filter: 2729"
+	},
+	{
+		"QUERY PLAN" : "                                            Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "                          ->  Hash  (cost=13.00..13.00 rows=600 width=16) (actual time=0.169..0.170 rows=600 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                Buckets: 1024  Batches: 1  Memory Usage: 37kB"
+	},
+	{
+		"QUERY PLAN" : "                                Buffers: shared hit=7"
+	},
+	{
+		"QUERY PLAN" : "                                ->  Seq Scan on products p  (cost=0.00..13.00 rows=600 width=16) (actual time=0.004..0.089 rows=600 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                      Buffers: shared hit=7"
+	},
+	{
+		"QUERY PLAN" : "                    ->  Hash  (cost=20.70..20.70 rows=1070 width=40) (actual time=0.016..0.016 rows=14 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                          Buckets: 2048  Batches: 1  Memory Usage: 17kB"
+	},
+	{
+		"QUERY PLAN" : "                          Buffers: shared hit=1"
+	},
+	{
+		"QUERY PLAN" : "                          ->  Seq Scan on categories ct  (cost=0.00..20.70 rows=1070 width=40) (actual time=0.008..0.011 rows=14 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                Buffers: shared hit=1"
+	},
+	{
+		"QUERY PLAN" : "Planning:"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=24"
+	},
+	{
+		"QUERY PLAN" : "Planning Time: 0.643 ms"
+	},
+	{
+		"QUERY PLAN" : "Execution Time: 8.194 ms"
+	}
+]}

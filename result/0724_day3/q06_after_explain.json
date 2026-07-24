@@ -1,0 +1,48 @@
+{
+"EXPLAIN (ANALYZE, BUFFERS)\nWITH sequenced_orders AS (\n    SELECT\n        o.customer_id,\n        o.order_ts,\n        ROW_NUMBER() OVER (\n            PARTITION BY o.customer_id\n            ORDER BY o.order_ts, o.order_id\n        ) AS purchase_no\n    FROM ecom.orders AS o\n    WHERE o.order_status IN ('paid', 'shipped', 'delivered')\n),\nfirst_two_purchases AS (\n    SELECT\n        customer_id,\n        MAX(order_ts) FILTER (WHERE purchase_no = 1) AS first_order_ts,\n        MAX(order_ts) FILTER (WHERE purchase_no = 2) AS second_order_ts\n    FROM sequenced_orders\n    WHERE purchase_no <= 2\n    GROUP BY customer_id\n),\nrepurchase_flags AS (\n    SELECT\n        customer_id,\n        second_order_ts <= first_order_ts + INTERVAL '30 days'\n            AS repurchased_within_30d\n    FROM first_two_purchases\n    WHERE first_order_ts <= CURRENT_TIMESTAMP - INTERVAL '30 days'\n)\nSELECT\n    COUNT(*) AS first_purchase_customers,\n    COUNT(*) FILTER (\n        WHERE repurchased_within_30d\n    ) AS repurchase_customers,\n    ROUND(\n        100.0 * COUNT(*) FILTER (WHERE repurchased_within_30d)\n        \/ NULLIF(COUNT(*), 0),\n        2\n    ) AS repurchase_rate_pct\nFROM repurchase_flags": [
+	{
+		"QUERY PLAN" : "Aggregate  (cost=466.75..466.78 rows=1 width=48) (actual time=3.615..3.616 rows=1 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=146"
+	},
+	{
+		"QUERY PLAN" : "  ->  GroupAggregate  (cost=0.34..451.45 rows=765 width=24) (actual time=0.029..3.173 rows=2093 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "        Group Key: o.customer_id"
+	},
+	{
+		"QUERY PLAN" : "        Filter: (max(o.order_ts) FILTER (WHERE ((row_number() OVER (?)) = 1)) <= (CURRENT_TIMESTAMP - '30 days'::interval))"
+	},
+	{
+		"QUERY PLAN" : "        Rows Removed by Filter: 134"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=146"
+	},
+	{
+		"QUERY PLAN" : "        ->  WindowAgg  (cost=0.34..297.35 rows=5064 width=32) (actual time=0.017..2.096 rows=4454 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Run Condition: (row_number() OVER (?) <= 2)"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=146"
+	},
+	{
+		"QUERY PLAN" : "              ->  Index Only Scan using idx_orders_sales_customer_ts on orders o  (cost=0.28..196.07 rows=5064 width=24) (actual time=0.014..0.511 rows=5064 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                    Heap Fetches: 278"
+	},
+	{
+		"QUERY PLAN" : "                    Buffers: shared hit=146"
+	},
+	{
+		"QUERY PLAN" : "Planning Time: 0.195 ms"
+	},
+	{
+		"QUERY PLAN" : "Execution Time: 3.639 ms"
+	}
+]}

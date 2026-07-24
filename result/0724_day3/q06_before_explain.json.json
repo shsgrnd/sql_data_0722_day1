@@ -1,0 +1,75 @@
+{
+"EXPLAIN (ANALYZE, BUFFERS)\nWITH first_purchases AS (\n    SELECT \n        o.customer_id,\n        MIN(o.order_ts) AS first_order_ts\n    FROM ecom.orders AS O\n    WHERE o.order_status IN ('paid', 'shipped', 'delivered')\n    GROUP BY o.customer_id\n    HAVING MIN(o.order_ts) <= CURRENT_TIMESTAMP - INTERVAL '30 days'\n),\nrepurchase_flags AS (\n    SELECT \n        fp.customer_id,\n        fp.first_order_ts, \n        EXISTS (\n            SELECT 1\n            FROM ecom.orders AS next_o\n            WHERE next_o.customer_id = fp.customer_id\n              AND next_o.order_status IN ('paid', 'shipped', 'delivered')\n              AND next_o.order_ts > fp.first_order_ts\n              AND next_o.order_ts <= fp.first_order_ts + INTERVAL '30 days'\n        ) AS repurchased_within_30d\n        FROM first_purchases AS fp\n)\nSELECT \n    COUNT(*) AS first_purchase_customers,\n    COUNT(*) FILTER (\n        WHERE repurchased_within_30d\n    ) AS repurchase_customers, \n    ROUND(\n        100.0 * COUNT(*) FILTER (WHERE repurchased_within_30d)\n        \/ NULLIF(COUNT(*), 0), \n        2 \n    ) AS repurchased_rate_pct\nFROM repurchase_flags\n": [
+	{
+		"QUERY PLAN" : "Aggregate  (cost=16549.53..16549.56 rows=1 width=48) (actual time=8.496..8.498 rows=1 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=10354"
+	},
+	{
+		"QUERY PLAN" : "  ->  HashAggregate  (cost=184.02..235.50 rows=981 width=16) (actual time=2.178..2.893 rows=2093 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "        Group Key: o.customer_id"
+	},
+	{
+		"QUERY PLAN" : "        Filter: (min(o.order_ts) <= (CURRENT_TIMESTAMP - '30 days'::interval))"
+	},
+	{
+		"QUERY PLAN" : "        Batches: 1  Memory Usage: 369kB"
+	},
+	{
+		"QUERY PLAN" : "        Rows Removed by Filter: 134"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "        ->  Seq Scan on orders o  (cost=0.00..158.96 rows=5012 width=16) (actual time=0.012..1.134 rows=5064 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Filter: (order_status = ANY ('{paid,shipped,delivered}'::text[]))"
+	},
+	{
+		"QUERY PLAN" : "              Rows Removed by Filter: 1556"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "  SubPlan 1"
+	},
+	{
+		"QUERY PLAN" : "    ->  Index Scan using idx_orders_customer_ts on orders next_o  (cost=0.29..8.31 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=2093)"
+	},
+	{
+		"QUERY PLAN" : "          Index Cond: ((customer_id = o.customer_id) AND (order_ts > (min(o.order_ts))) AND (order_ts <= ((min(o.order_ts)) + '30 days'::interval)))"
+	},
+	{
+		"QUERY PLAN" : "          Filter: (order_status = ANY ('{paid,shipped,delivered}'::text[]))"
+	},
+	{
+		"QUERY PLAN" : "          Buffers: shared hit=5143"
+	},
+	{
+		"QUERY PLAN" : "  SubPlan 2"
+	},
+	{
+		"QUERY PLAN" : "    ->  Index Scan using idx_orders_customer_ts on orders next_o_1  (cost=0.29..8.31 rows=1 width=0) (actual time=0.001..0.001 rows=0 loops=2093)"
+	},
+	{
+		"QUERY PLAN" : "          Index Cond: ((customer_id = o.customer_id) AND (order_ts > (min(o.order_ts))) AND (order_ts <= ((min(o.order_ts)) + '30 days'::interval)))"
+	},
+	{
+		"QUERY PLAN" : "          Filter: (order_status = ANY ('{paid,shipped,delivered}'::text[]))"
+	},
+	{
+		"QUERY PLAN" : "          Buffers: shared hit=5143"
+	},
+	{
+		"QUERY PLAN" : "Planning Time: 0.294 ms"
+	},
+	{
+		"QUERY PLAN" : "Execution Time: 8.567 ms"
+	}
+]}

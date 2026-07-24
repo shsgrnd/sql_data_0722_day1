@@ -1,0 +1,63 @@
+{
+"EXPLAIN (ANALYZE, BUFFERS)\nSELECT \n    p.product_id,\n    p.product_name,\n    inven.qty_on_hand, \n    inven.reorder_point,\n    inven.reorder_point - inven.qty_on_hand AS need_qty\nFROM ecom.products AS p \nJOIN ecom.inventory AS inven ON p.product_id = inven.product_id\nWHERE inven.qty_on_hand < inven.reorder_point\nORDER BY need_qty DESC": [
+	{
+		"QUERY PLAN" : "Sort  (cost=37.73..38.23 rows=200 width=31) (actual time=0.187..0.190 rows=63 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "  Sort Key: ((inven.reorder_point - inven.qty_on_hand)) DESC"
+	},
+	{
+		"QUERY PLAN" : "  Sort Method: quicksort  Memory: 27kB"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=12"
+	},
+	{
+		"QUERY PLAN" : "  ->  Hash Join  (cost=15.00..30.09 rows=200 width=31) (actual time=0.079..0.172 rows=63 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "        Hash Cond: (p.product_id = inven.product_id)"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=12"
+	},
+	{
+		"QUERY PLAN" : "        ->  Seq Scan on products p  (cost=0.00..13.00 rows=600 width=19) (actual time=0.007..0.048 rows=600 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=7"
+	},
+	{
+		"QUERY PLAN" : "        ->  Hash  (cost=12.50..12.50 rows=200 width=16) (actual time=0.066..0.067 rows=63 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Buckets: 1024  Batches: 1  Memory Usage: 11kB"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=5"
+	},
+	{
+		"QUERY PLAN" : "              ->  Seq Scan on inventory inven  (cost=0.00..12.50 rows=200 width=16) (actual time=0.007..0.056 rows=63 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                    Filter: (qty_on_hand < reorder_point)"
+	},
+	{
+		"QUERY PLAN" : "                    Rows Removed by Filter: 537"
+	},
+	{
+		"QUERY PLAN" : "                    Buffers: shared hit=5"
+	},
+	{
+		"QUERY PLAN" : "Planning:"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=12"
+	},
+	{
+		"QUERY PLAN" : "Planning Time: 0.224 ms"
+	},
+	{
+		"QUERY PLAN" : "Execution Time: 0.210 ms"
+	}
+]}

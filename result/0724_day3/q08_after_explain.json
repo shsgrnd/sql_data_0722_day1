@@ -1,0 +1,75 @@
+{
+"EXPLAIN (ANALYZE, BUFFERS)\nSELECT\n    p.product_id,\n    p.product_name,\n    ROUND(AVG(rev.rating), 2) AS rating,\n    COUNT(*) AS reviews_cnt\nFROM ecom.reviews AS rev\nJOIN ecom.products AS p\n  ON p.product_id = rev.product_id\nGROUP BY\n    p.product_id,\n    p.product_name\nHAVING AVG(rev.rating) >= 4.5\n   AND COUNT(*) >= 50\nORDER BY rating DESC, reviews_cnt DESC": [
+	{
+		"QUERY PLAN" : "Sort  (cost=96.59..96.76 rows=67 width=59) (actual time=2.015..2.018 rows=12 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "  Sort Key: (round(avg(rev.rating), 2)) DESC, (count(*)) DESC"
+	},
+	{
+		"QUERY PLAN" : "  Sort Method: quicksort  Memory: 25kB"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=29"
+	},
+	{
+		"QUERY PLAN" : "  ->  HashAggregate  (cost=83.89..94.56 rows=67 width=59) (actual time=1.912..1.989 rows=12 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "        Group Key: p.product_id"
+	},
+	{
+		"QUERY PLAN" : "        Filter: ((avg(rev.rating) >= 4.5) AND (count(*) >= 50))"
+	},
+	{
+		"QUERY PLAN" : "        Batches: 1  Memory Usage: 73kB"
+	},
+	{
+		"QUERY PLAN" : "        Rows Removed by Filter: 133"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=29"
+	},
+	{
+		"QUERY PLAN" : "        ->  Hash Join  (cost=20.50..68.48 rows=2055 width=23) (actual time=0.293..1.309 rows=2055 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Hash Cond: (rev.product_id = p.product_id)"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=29"
+	},
+	{
+		"QUERY PLAN" : "              ->  Seq Scan on reviews rev  (cost=0.00..42.55 rows=2055 width=12) (actual time=0.014..0.260 rows=2055 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                    Buffers: shared hit=22"
+	},
+	{
+		"QUERY PLAN" : "              ->  Hash  (cost=13.00..13.00 rows=600 width=19) (actual time=0.271..0.272 rows=600 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                    Buckets: 1024  Batches: 1  Memory Usage: 39kB"
+	},
+	{
+		"QUERY PLAN" : "                    Buffers: shared hit=7"
+	},
+	{
+		"QUERY PLAN" : "                    ->  Seq Scan on products p  (cost=0.00..13.00 rows=600 width=19) (actual time=0.008..0.125 rows=600 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                          Buffers: shared hit=7"
+	},
+	{
+		"QUERY PLAN" : "Planning:"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=14"
+	},
+	{
+		"QUERY PLAN" : "Planning Time: 0.350 ms"
+	},
+	{
+		"QUERY PLAN" : "Execution Time: 2.062 ms"
+	}
+]}

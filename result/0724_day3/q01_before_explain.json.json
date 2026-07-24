@@ -1,0 +1,57 @@
+{
+"EXPLAIN (ANALYZE, BUFFERS)\nSELECT\n    COALESCE(SUM(oi.line_total), 0) AS total_sales_amount\nFROM ecom.orders AS o\nJOIN ecom.order_items AS oi\n  ON oi.order_id = o.order_id\nWHERE o.order_status IN ('paid', 'shipped', 'delivered')\n  AND o.order_ts >= CURRENT_TIMESTAMP - INTERVAL '1 month'": [
+	{
+		"QUERY PLAN" : "Aggregate  (cost=478.66..478.67 rows=1 width=32) (actual time=3.460..3.462 rows=1 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "  ->  Hash Join  (cost=225.11..473.15 rows=2202 width=6) (actual time=1.681..3.299 rows=2174 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "        Hash Cond: (oi.order_id = o.order_id)"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "        ->  Seq Scan on order_items oi  (cost=0.00..219.12 rows=11012 width=14) (actual time=0.006..0.587 rows=11012 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=109"
+	},
+	{
+		"QUERY PLAN" : "        ->  Hash  (cost=208.57..208.57 rows=1323 width=8) (actual time=1.669..1.670 rows=1308 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Buckets: 2048  Batches: 1  Memory Usage: 68kB"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "              ->  Seq Scan on orders o  (cost=0.00..208.57 rows=1323 width=8) (actual time=0.006..1.537 rows=1308 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                    Filter: ((order_status = ANY ('{paid,shipped,delivered}'::text[])) AND (order_ts >= (CURRENT_TIMESTAMP - '1 mon'::interval)))"
+	},
+	{
+		"QUERY PLAN" : "                    Rows Removed by Filter: 5312"
+	},
+	{
+		"QUERY PLAN" : "                    Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "Planning:"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=10"
+	},
+	{
+		"QUERY PLAN" : "Planning Time: 0.221 ms"
+	},
+	{
+		"QUERY PLAN" : "Execution Time: 3.484 ms"
+	}
+]}

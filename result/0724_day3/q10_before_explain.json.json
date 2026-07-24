@@ -1,0 +1,114 @@
+{
+"EXPLAIN (ANALYZE, BUFFERS)\nWITH customer_sales AS (\n    SELECT \n        o.customer_id,\n        SUM(oi.line_total) AS sales_60d\n    FROM ecom.orders AS o\n    JOIN ecom.order_items AS oi on o.order_id = oi.order_id\n    WHERE o.order_status IN ('paid', 'shipped', 'delivered')\n      AND o.order_ts >= CURRENT_TIMESTAMP - INTERVAL '60 days'\n    GROUP BY o.customer_id\n), \nranked_customers AS (\n    SELECT \n        customer_id,\n        sales_60d,\n        NTILE(100) OVER (\n            ORDER BY sales_60d DESC\n        ) AS sales_group\n    FROM customer_sales\n)   \nSELECT \n    rc.customer_id,\n    cust.full_name,\n    cust.email,\n    rc.sales_60d\nFROM ranked_customers AS rc\nJOIN ecom.customers AS cust ON cust.customer_id = rc.customer_id\nWHERE rc.sales_group = 1\nORDER BY rc.sales_60d DESC": [
+	{
+		"QUERY PLAN" : "Nested Loop  (cost=651.99..780.65 rows=10 width=73) (actual time=5.993..6.022 rows=17 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=228"
+	},
+	{
+		"QUERY PLAN" : "  ->  Subquery Scan on rc  (cost=651.71..713.68 rows=10 width=40) (actual time=5.976..5.983 rows=17 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "        Filter: (rc.sales_group = 1)"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "        ->  WindowAgg  (cost=651.71..687.85 rows=2066 width=44) (actual time=5.975..5.980 rows=17 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "              Run Condition: (ntile(100) OVER (?) <= 1)"
+	},
+	{
+		"QUERY PLAN" : "              Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "              ->  Sort  (cost=651.70..656.86 rows=2066 width=40) (actual time=5.810..5.881 rows=1677 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                    Sort Key: customer_sales.sales_60d DESC"
+	},
+	{
+		"QUERY PLAN" : "                    Sort Method: quicksort  Memory: 101kB"
+	},
+	{
+		"QUERY PLAN" : "                    Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "                    ->  Subquery Scan on customer_sales  (cost=512.11..537.93 rows=2066 width=40) (actual time=4.978..5.416 rows=1677 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                          Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "                          ->  HashAggregate  (cost=512.11..537.93 rows=2066 width=40) (actual time=4.977..5.309 rows=1677 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                Group Key: o.customer_id"
+	},
+	{
+		"QUERY PLAN" : "                                Batches: 1  Memory Usage: 881kB"
+	},
+	{
+		"QUERY PLAN" : "                                Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "                                ->  Hash Join  (cost=241.88..489.93 rows=4436 width=14) (actual time=1.668..3.984 rows=4550 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                      Hash Cond: (oi.order_id = o.order_id)"
+	},
+	{
+		"QUERY PLAN" : "                                      Buffers: shared hit=177"
+	},
+	{
+		"QUERY PLAN" : "                                      ->  Seq Scan on order_items oi  (cost=0.00..219.12 rows=11012 width=14) (actual time=0.005..0.704 rows=11012 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                            Buffers: shared hit=109"
+	},
+	{
+		"QUERY PLAN" : "                                      ->  Hash  (cost=208.57..208.57 rows=2665 width=16) (actual time=1.657..1.658 rows=2700 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                            Buckets: 4096  Batches: 1  Memory Usage: 159kB"
+	},
+	{
+		"QUERY PLAN" : "                                            Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "                                            ->  Seq Scan on orders o  (cost=0.00..208.57 rows=2665 width=16) (actual time=0.005..1.424 rows=2700 loops=1)"
+	},
+	{
+		"QUERY PLAN" : "                                                  Filter: ((order_status = ANY ('{paid,shipped,delivered}'::text[])) AND (order_ts >= (CURRENT_TIMESTAMP - '60 days'::interval)))"
+	},
+	{
+		"QUERY PLAN" : "                                                  Rows Removed by Filter: 3920"
+	},
+	{
+		"QUERY PLAN" : "                                                  Buffers: shared hit=68"
+	},
+	{
+		"QUERY PLAN" : "  ->  Index Scan using customers_pkey on customers cust  (cost=0.28..6.70 rows=1 width=41) (actual time=0.002..0.002 rows=1 loops=17)"
+	},
+	{
+		"QUERY PLAN" : "        Index Cond: (customer_id = rc.customer_id)"
+	},
+	{
+		"QUERY PLAN" : "        Buffers: shared hit=51"
+	},
+	{
+		"QUERY PLAN" : "Planning:"
+	},
+	{
+		"QUERY PLAN" : "  Buffers: shared hit=10"
+	},
+	{
+		"QUERY PLAN" : "Planning Time: 0.269 ms"
+	},
+	{
+		"QUERY PLAN" : "Execution Time: 6.072 ms"
+	}
+]}
